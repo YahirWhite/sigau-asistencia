@@ -11,7 +11,7 @@ import pytz
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
-# Zona horaria global para conversiones de salida
+# Zona horaria global para conversiones de salida (Sincronizada)
 VZLA_TZ = pytz.timezone('America/Caracas')
 
 # --- 1. DASHBOARD (Oficina Principal) ---
@@ -75,7 +75,8 @@ def ver_qr(materia_id):
     img.save(buffer, format="PNG")
     img_str = base64.b64encode(buffer.getvalue()).decode()
 
-    # Obtener lista de asistentes de HOY usando to_char para evitar errores de zona horaria
+    # Obtener lista de asistentes de HOY usando to_char
+    # Como ahora guardamos compensado, el to_char encontrará la fecha correcta
     hoy_str = obtener_hora_vzla().strftime('%Y-%m-%d')
     asistencias = Asistencia.query.filter(
         Asistencia.materia_id == materia.id,
@@ -104,7 +105,7 @@ def eliminar_asistencia(asistencia_id):
     flash('Asistencia eliminada manualmente.', 'warning')
     return redirect(url_for('admin.ver_qr', materia_id=materia.id))
 
-# --- 5. HISTORIAL INTELIGENTE (Corregido con to_char) ---
+# --- 5. HISTORIAL INTELIGENTE (Lectura Directa de Datos Compensados) ---
 @admin_bp.route('/historial')
 @login_required
 def historial():
@@ -132,13 +133,9 @@ def historial():
 
     asistencias = query.order_by(Asistencia.fecha.desc()).all()
 
-    # Ajustamos la hora para la visualización (Caracas)
-    for a in asistencias:
-        if a.fecha.tzinfo is None:
-            a.fecha = VZLA_TZ.localize(a.fecha)
-        else:
-            a.fecha = a.fecha.astimezone(VZLA_TZ)
-
+    # NOTA: No aplicamos .astimezone ni localize aquí porque la hora 
+    # ya viene "corregida" desde la base de datos gracias a la resta de student_routes.
+    
     if current_user.rol == 'admin':
         todas_las_materias = Materia.query.all()
         secciones = db.session.query(Materia.codigo_seccion).distinct().all()
@@ -223,7 +220,7 @@ def asignar_materia():
     catalogo = CatalogoMaterias.query.order_by(CatalogoMaterias.nombre).all()
     return render_template('admin/asignar_materia.html', docentes=docentes, catalogo=catalogo)
 
-# --- 10. EXPORTAR A EXCEL (CSV Corregido) ---
+# --- 10. EXPORTAR A EXCEL (CSV Limpio) ---
 @admin_bp.route('/descargar_reporte')
 @login_required
 def descargar_reporte():
@@ -245,12 +242,17 @@ def descargar_reporte():
     registros = query.order_by(Asistencia.fecha.desc()).all()
 
     for reg in registros:
-        f_vzla = reg.fecha.astimezone(VZLA_TZ) if reg.fecha.tzinfo else VZLA_TZ.localize(reg.fecha)
+        # Usamos la fecha tal cual viene, porque ya está compensada en el origen
         cw.writerow([
-            f_vzla.strftime('%d/%m/%Y'), f_vzla.strftime('%H:%M'),
-            reg.materia.nombre, reg.materia.codigo_seccion, reg.materia.docente.nombre,
-            reg.estudiante.nombre, reg.estudiante.cedula,
-            getattr(reg.estudiante, 'seccion_estudiante', 'S/D'), reg.estado
+            reg.fecha.strftime('%d/%m/%Y'), 
+            reg.fecha.strftime('%H:%M'),
+            reg.materia.nombre, 
+            reg.materia.codigo_seccion, 
+            reg.materia.docente.nombre,
+            reg.estudiante.nombre, 
+            reg.estudiante.cedula,
+            getattr(reg.estudiante, 'seccion_estudiante', 'S/D'), 
+            reg.estado
         ])
 
     output = make_response(si.getvalue())

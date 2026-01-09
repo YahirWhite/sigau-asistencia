@@ -1,8 +1,8 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-# IMPORTANTE: Importamos obtener_hora_vzla
+# IMPORTANTE: Importamos obtener_hora_vzla y timedelta
 from app.models import db, Asistencia, Materia, Configuracion, obtener_hora_vzla
-from datetime import datetime
+from datetime import datetime, timedelta
 
 student_bp = Blueprint('student', __name__, url_prefix='/student')
 
@@ -18,7 +18,7 @@ def escaner():
 
     return render_template('student/escaner.html', inscripciones_abiertas=inscripciones_abiertas)
 
-# --- 2. PROCESAR QR (CORREGIDO Y BLINDADO) ---
+# --- 2. PROCESAR QR (Sincronizado con Compensación de Servidor) ---
 @student_bp.route('/procesar_qr', methods=['POST'])
 @login_required
 def procesar_qr():
@@ -45,12 +45,19 @@ def procesar_qr():
         flash(f'⛔ ACCESO DENEGADO: Tú eres de la Sección "{sec_alumno}" y esta clase es de la Sección "{sec_materia}".', 'danger')
         return redirect(url_for('student.escaner'))
 
-    # --- CORRECCIÓN DEFINITIVA DE HORA Y COMPARACIÓN ---
+    # --- LÓGICA DE COMPENSACIÓN HORARIA ---
+    
+    # 1. Obtenemos la hora real de Venezuela (Para mostrar al alumno)
     ahora_vzla = obtener_hora_vzla()
-    # Convertimos la fecha de hoy a texto para comparar sin errores de zona horaria
+    
+    # 2. Creamos la hora compensada para la Base de Datos (Restamos 4h)
+    # Esto compensa el adelanto que aplica Neon automáticamente.
+    hora_para_db = ahora_vzla - timedelta(hours=4)
+    
+    # 3. Convertimos la fecha de hoy a texto para comparar sin errores
     hoy_str = ahora_vzla.strftime('%Y-%m-%d')
 
-    # Verificar si ya marcó hoy usando to_char para que la base de datos no se confunda
+    # Verificar si ya marcó hoy usando to_char
     existe = Asistencia.query.filter(
         Asistencia.estudiante_id == current_user.id,
         Asistencia.materia_id == materia.id,
@@ -63,12 +70,13 @@ def procesar_qr():
         nueva_asistencia = Asistencia(
             estudiante_id=current_user.id,
             materia_id=materia.id,
-            fecha=ahora_vzla,  # Forzamos la hora exacta de Vzla al guardar
+            fecha=hora_para_db,  # <--- GUARDAMOS CON LA RESTA PARA COMPENSAR NEON
             estado='Presente'
         )
         db.session.add(nueva_asistencia)
         db.session.commit()
-        # Mensaje de éxito con la hora real de la tarjeta
+        
+        # AL ALUMNO LE MOSTRAMOS SU HORA REAL (Sin la resta)
         flash(f'✅ ¡Éxito! Asistencia registrada en {materia.nombre} ({ahora_vzla.strftime("%H:%M")})', 'success')
 
     return redirect(url_for('student.escaner'))
