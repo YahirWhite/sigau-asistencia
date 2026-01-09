@@ -26,7 +26,7 @@
     <div class="w-full max-w-sm relative mt-[-20px] flex flex-col items-center">
         
         <div class="w-full aspect-square relative rounded-3xl overflow-hidden border-2 border-white/20 shadow-2xl shadow-azul-inst/30 bg-gray-900">
-            <div id="reader" class="w-full h-full object-cover"></div>
+            <div id="reader" class="w-full h-full"></div>
             
             <div class="absolute top-0 left-0 w-full h-1 bg-azul-inst/80 shadow-[0_0_20px_rgba(0,100,255,0.8)] animate-scan z-10 pointer-events-none"></div>
             
@@ -64,52 +64,59 @@
 
 </div>
 
-<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-
 <script>
     const beepSound = new Audio('https://www.soundjay.com/buttons/beep-01a.mp3'); 
-    let html5QrcodeScanner;
+    let html5QrCode;
 
-    // --- ENVIAR TOKEN AL BACKEND ---
-    // Usamos el formulario oculto para que la página se recargue y muestre las Alertas Flash del Base.html
     function enviarToken(token) {
-        if (!token) {
-            alert("Por favor escribe el código.");
-            return;
-        }
-
+        if (!token) return;
         beepSound.play().catch(e => console.log("Audio bloqueado"));
-        
-        // Poner el token en el input oculto y enviar
         document.getElementById('token-input').value = token;
         document.getElementById('qr-form').submit();
     }
 
-    // --- MANEJO DE CÁMARA ---
-    function onScanSuccess(decodedText, decodedResult) {
-        if (html5QrcodeScanner) {
-            html5QrcodeScanner.clear(); 
-        }
-        enviarToken(decodedText);
-    }
-
+    // --- NUEVA LÓGICA DE CÁMARA PRO ---
     function iniciarCamara() {
-        html5QrcodeScanner = new Html5QrcodeScanner(
-            "reader", { fps: 10, qrbox: {width: 250, height: 250} }, false
-        );
-        html5QrcodeScanner.render(onScanSuccess, (e) => {});
+        html5QrCode = new Html5Qrcode("reader");
+        const config = { 
+            fps: 15, // Un poco más rápido para mejor respuesta
+            qrbox: { width: 250, height: 250 },
+            aspectRatio: 1.0
+        };
+
+        // FACING_MODE "environment" fuerza la cámara trasera
+        html5QrCode.start(
+            { facingMode: "environment" }, 
+            config, 
+            (decodedText) => {
+                html5QrCode.stop().then(() => {
+                    enviarToken(decodedText);
+                });
+            }
+        ).catch(err => {
+            console.error("Error de cámara:", err);
+            // Si falla la cámara trasera, intenta con cualquier cámara disponible
+            html5QrCode.start({ facingMode: "user" }, config, (decodedText) => {
+                html5QrCode.stop().then(() => enviarToken(decodedText));
+            });
+        });
     }
 
-    // --- MANEJO MANUAL ---
     function enviarManual() {
         const codigo = document.getElementById('inputCodigo').value.toUpperCase().trim();
-        enviarToken(codigo);
+        if(codigo) enviarToken(codigo);
     }
 
     document.addEventListener('DOMContentLoaded', iniciarCamara);
 </script>
 
 <style>
+    /* Estilos para limpiar el visor de la cámara */
+    #reader video {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
     @keyframes scan {
         0% { top: 0%; opacity: 0; }
         10% { opacity: 1; }

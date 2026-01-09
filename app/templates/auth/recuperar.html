@@ -1,32 +1,66 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
-    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+<div class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-100 dark:border-slate-700 transition-colors duration-300">
+        
         <div class="text-center mb-6">
-            <h2 class="text-2xl font-bold text-azul-inst">Recuperar Acceso</h2>
-            <p class="text-gray-500 text-sm">Ingresa tu cédula y la nueva contraseña que deseas usar.</p>
+            <div class="w-20 h-20 bg-white rounded-full mx-auto mb-3 flex items-center justify-center shadow-md p-1 border border-gray-100 relative overflow-hidden">
+                <img src="{{ url_for('static', filename='logo.png') }}" 
+                     alt="Logo" 
+                     class="w-full h-full object-cover rounded-full"> 
+            </div>
+            <h2 class="text-2xl font-bold text-azul-inst dark:text-white">Recuperar Acceso</h2>
+            <p class="text-gray-500 dark:text-slate-400 text-sm">Ingresa tu cédula y la nueva contraseña que deseas usar.</p>
         </div>
 
-        <form method="POST">
-            <div class="mb-4">
-                <label class="block text-gray-700 font-bold mb-2">Cédula de Identidad</label>
-                <input type="text" name="cedula" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-azul-inst" placeholder="Ej: 28123456">
+        <form method="POST" class="space-y-6">
+            <div>
+                <label class="block text-gray-700 dark:text-slate-300 font-bold mb-2 ml-1 text-sm uppercase tracking-wide">Cédula de Identidad</label>
+                <input type="text" name="cedula" required 
+                       class="input-std w-full p-3 border rounded-lg focus:ring-2 focus:ring-azul-inst outline-none transition-all" 
+                       placeholder="Ej: 28123456">
             </div>
 
-            <div class="mb-6">
-                <label class="block text-gray-700 font-bold mb-2">Nueva Contraseña</label>
-                <input type="password" name="nueva_clave" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-azul-inst" placeholder="Mínimo 6 caracteres">
+            <div>
+                <label class="block text-gray-700 dark:text-slate-300 font-bold mb-2 ml-1 text-sm uppercase tracking-wide">Nueva Contraseña</label>
+                <input type="password" name="nueva_clave" required 
+                       class="input-std w-full p-3 border rounded-lg focus:ring-2 focus:ring-azul-inst outline-none transition-all" 
+                       placeholder="Mínimo 6 caracteres">
             </div>
 
-            <button type="submit" class="w-full bg-azul-inst text-white font-bold py-3 rounded-xl hover:bg-opacity-90 transition">
+            <button type="submit" class="w-full bg-azul-inst text-white font-bold py-3 rounded-xl shadow-lg hover:bg-opacity-90 transition-all active:scale-95">
                 Enviar Solicitud
             </button>
         </form>
 
-        <div class="mt-4 text-center">
-            <a href="{{ url_for('auth.login') }}" class="text-gray-500 hover:text-azul-inst text-sm">Volver al Login</a>
+        <div class="mt-6 text-center">
+            <a href="{{ url_for('auth.login') }}" class="text-gray-500 dark:text-slate-400 hover:text-azul-inst dark:hover:text-blue-400 text-sm font-medium transition-colors">
+                <i class="fas fa-arrow-left mr-1"></i> Volver al Login
+            </a>
         </div>
     </div>
 </div>
+
+<style>
+    .input-std {
+        transition: all 0.3s ease;
+        background-color: #ffffff !important;
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+    }
+
+    /* CORRECCIÓN PARA MODO OSCURO */
+    html.dark .input-std {
+        background-color: #1e293b !important;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+        border-color: #475569 !important;
+    }
+    
+    .input-std:focus {
+        border-color: #003366;
+        box-shadow: 0 0 0 3px rgba(0, 51, 102, 0.1);
+    }
+</style>
 {% endblock %}

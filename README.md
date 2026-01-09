@@ -41,6 +41,60 @@ El sistema utiliza una arquitectura robusta preparada para alta concurrencia:
 3. **Auditoría y Cierre:** El docente valida la lista, finaliza la clase y genera el reporte de inasist
 
 
+
+
+
+
+Guía de Instalación y Despliegue Local - SIGAU
+Esta guía permite configurar el entorno necesario para ejecutar el Sistema de Asistencia Universitaria en una computadora local para pruebas o auditoría.
+
+## 1. Requisitos Previos
+Python 3.10 o superior: Descargar aquí. https://www.python.org/downloads/
+
+PostgreSQL: Descargar aquí. https://www.postgresql.org/download/
+
+Git: Para clonar el repositorio.
+
+## 2. Configuración del Proyecto
+Abre una terminal (CMD o PowerShell) y sigue estos pasos:
+
+Clonar el repositorio:
+
+git clone https://github.com/YahirWhite/asistencia-qr-sigau.git
+cd asistencia-qr-sigau
+
+
+Crear y activar el Entorno Virtual (VENV):
+
+python -m venv venv
+# En Windows:
+venv\Scripts\activate
+
+Instalar Dependencias:
+
+pip install -r requirements.txt
+
+## 3. Configuración de la Base de Datos
+1. Abre **pgAdmin 4** y utiliza la base de datos por defecto llamada `postgres` (o crea una nueva si prefieres separar el proyecto).
+2. Crea un archivo llamado `.env` en la carpeta raíz del proyecto con el siguiente formato:
+   ```env
+   DATABASE_URL=postgresql://postgres:admin123@127.0.0.1:5432/postgres
+   SECRET_KEY=clave-super-secreta-2026
+   FLASK_APP=run.py
+   PGMESSAGES=C
+
+## 4. Inicialización y Ejecución
+Crear las tablas: Ejecuta este comando una sola vez para que SQLAlchemy cree la estructura:
+
+# Puedes hacerlo desde un script de python o entrando al shell
+python -c "from app import create_app, db; app=create_app(); app.app_context().push(); db.create_all()"
+
+Iniciar el sistema:
+python run.py
+
+Accede desde tu navegador a: http://127.0.0.1:5000
+
+
 ---
 
 *Desarrollado por Yahir Jose Peñate Olivo - Estudiante de Ciberseguridad - 2026*

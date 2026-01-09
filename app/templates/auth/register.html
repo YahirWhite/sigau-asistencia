@@ -1,59 +1,60 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-    <div class="bg-white p-8 rounded-3xl shadow-xl w-full max-w-md border border-gray-100 relative overflow-hidden">
+<div class="min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl w-full max-w-md border border-gray-100 dark:border-slate-700 relative overflow-hidden transition-colors duration-300">
         
         <div class="text-center mb-6">
             <div class="w-20 h-20 bg-white rounded-full mx-auto mb-3 flex items-center justify-center shadow-md p-1 border border-gray-100 relative overflow-hidden">
                 <img src="{{ url_for('static', filename='logo.png') }}" 
                      alt="Logo" 
-                     class="w-full h-full object-cover rounded-full"> </div>
-            <h1 class="text-2xl font-bold text-azul-inst">Crear Cuenta</h1>
-            <p class="text-gray-400 text-sm">Únete a la comunidad universitaria</p>
+                     class="w-full h-full object-cover rounded-full"> 
+            </div>
+            <h1 class="text-2xl font-bold text-azul-inst dark:text-white">Crear Cuenta</h1>
+            <p class="text-gray-400 dark:text-slate-400 text-sm">Únete a la comunidad universitaria</p>
         </div>
 
         <form method="POST" class="space-y-4">
             
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Nombre Completo</label>
+                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Nombre Completo</label>
                 <input type="text" name="nombre" required class="input-std" placeholder="Tu nombre">
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Cédula</label>
+                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Cédula</label>
                 <input type="text" name="cedula" required pattern="\d{6,9}" title="Debe tener entre 6 y 9 dígitos"
                        class="input-std font-mono" placeholder="Ej. 28123456" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9)">
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Teléfono</label>
+                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Teléfono</label>
                 <input type="tel" name="telefono" required pattern="\d{11}" title="Debe tener exactamente 11 dígitos"
                        class="input-std font-mono" placeholder="04125724190" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)">
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Ciudad</label>
+                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Ciudad</label>
                 <input type="text" name="ciudad" required class="input-std" placeholder="Ej. Barcelona">
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Soy...</label>
+                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Soy...</label>
                 <div class="grid grid-cols-2 gap-3">
                     <label class="cursor-pointer">
                         <input type="radio" name="rol" value="estudiante" checked class="peer sr-only" onchange="toggleCampos(true)">
-                        <div class="rol-card border-azul-inst text-azul-inst bg-azul-inst/5">Estudiante</div>
+                        <div class="rol-card border-azul-inst text-azul-inst dark:border-blue-500 dark:text-blue-300 bg-azul-inst/5">Estudiante</div>
                     </label>
                     <label class="cursor-pointer">
                         <input type="radio" name="rol" value="docente" class="peer sr-only" onchange="toggleCampos(false)">
-                        <div class="rol-card border-gray-200 text-gray-400">Docente</div>
+                        <div class="rol-card border-gray-200 dark:border-slate-600 text-gray-400 dark:text-slate-500">Docente</div>
                     </label>
                 </div>
             </div>
 
-            <div id="camposEstudiante" class="grid grid-cols-2 gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+            <div id="camposEstudiante" class="grid grid-cols-2 gap-3 bg-gray-50 dark:bg-slate-900/50 p-3 rounded-xl border border-gray-100 dark:border-slate-700">
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Semestre</label>
+                    <label class="block text-xs font-bold text-gray-500 dark:text-slate-300 uppercase mb-1">Semestre</label>
                     <select name="semestre" class="input-std text-sm">
                         <option value="CAIU">CAIU</option>
                         {% for i in range(1, 9) %}
@@ -62,7 +63,7 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Sección</label>
+                    <label class="block text-xs font-bold text-gray-500 dark:text-slate-300 uppercase mb-1">Sección</label>
                     <select name="seccion_estudiante" class="input-std text-sm">
                         {% for i in range(1, 25) %}
                         <option value="{{ i }}">{{ i }}</option>
@@ -72,26 +73,62 @@
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Contraseña</label>
+                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Contraseña</label>
                 <input type="password" name="password" required class="input-std" placeholder="••••••••">
             </div>
 
-            <button type="submit" class="w-full bg-azul-inst text-white font-bold py-3 rounded-xl shadow-lg hover:bg-opacity-90 transition-all">
+            <button type="submit" class="w-full bg-azul-inst text-white font-bold py-3 rounded-xl shadow-lg hover:bg-opacity-90 transition-all active:scale-95">
                 Registrarse
             </button>
         </form>
         
         <div class="mt-6 text-center text-sm">
-            <a href="{{ url_for('auth.login') }}" class="text-azul-inst font-bold hover:underline">Volver al Login</a>
+            <a href="{{ url_for('auth.login') }}" class="text-azul-inst dark:text-blue-400 font-bold hover:underline">Volver al Login</a>
         </div>
     </div>
 </div>
 
 <style>
-    .input-std { width: 100%; background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 0.75rem; padding: 0.75rem 1rem; outline: none; transition: all; }
-    .input-std:focus { border-color: #2F3E46; box-shadow: 0 0 0 2px rgba(47, 62, 70, 0.1); background: white; }
-    .rol-card { text-align: center; padding: 0.75rem; border-radius: 0.75rem; border-width: 2px; font-weight: bold; transition: all; }
-    input:checked + .rol-card { border-color: #2F3E46; background: #2F3E46; color: white; }
+    /* Estilo para Modo Claro (Texto negro, fondo blanco) */
+    .input-std { 
+        width: 100%; 
+        border-radius: 0.75rem; 
+        padding: 0.75rem 1rem; 
+        outline: none; 
+        transition: all;
+        background-color: #ffffff !important;
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+    }
+    
+    /* CORRECCIÓN PARA MODO OSCURO (Fondo oscuro, letra blanca) */
+    /* Usamos html.dark para asegurar que detecte la clase del base.html */
+    html.dark .input-std {
+        background-color: #1e293b !important; /* Azul pizarra oscuro */
+        color: #ffffff !important;           /* Blanco puro */
+        -webkit-text-fill-color: #ffffff !important;
+        border-color: #475569 !important;
+    }
+
+    .input-std:focus { 
+        border-color: #0055A4; 
+        box-shadow: 0 0 0 2px rgba(0, 85, 164, 0.1); 
+    }
+
+    .rol-card { 
+        text-align: center; 
+        padding: 0.75rem; 
+        border-radius: 0.75rem; 
+        border-width: 2px; 
+        font-weight: bold; 
+        transition: all; 
+    }
+
+    input:checked + .rol-card { 
+        border-color: #003366; 
+        background: #003366; 
+        color: white !important; 
+    }
 </style>
 
 <script>
