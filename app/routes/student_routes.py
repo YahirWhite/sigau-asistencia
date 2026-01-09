@@ -18,7 +18,7 @@ def escaner():
 
     return render_template('student/escaner.html', inscripciones_abiertas=inscripciones_abiertas)
 
-# --- 2. PROCESAR QR (CORREGIDO HORA VZLA) ---
+# --- 2. PROCESAR QR (CORREGIDO Y BLINDADO) ---
 @student_bp.route('/procesar_qr', methods=['POST'])
 @login_required
 def procesar_qr():
@@ -45,15 +45,16 @@ def procesar_qr():
         flash(f'⛔ ACCESO DENEGADO: Tú eres de la Sección "{sec_alumno}" y esta clase es de la Sección "{sec_materia}".', 'danger')
         return redirect(url_for('student.escaner'))
 
-    # --- CORRECCIÓN DE HORA AQUÍ ---
+    # --- CORRECCIÓN DEFINITIVA DE HORA Y COMPARACIÓN ---
     ahora_vzla = obtener_hora_vzla()
-    hoy_vzla = ahora_vzla.date()
+    # Convertimos la fecha de hoy a texto para comparar sin errores de zona horaria
+    hoy_str = ahora_vzla.strftime('%Y-%m-%d')
 
-    # Verificar si ya marcó hoy usando la fecha de Venezuela
+    # Verificar si ya marcó hoy usando to_char para que la base de datos no se confunda
     existe = Asistencia.query.filter(
         Asistencia.estudiante_id == current_user.id,
         Asistencia.materia_id == materia.id,
-        db.func.date(Asistencia.fecha) == hoy_vzla
+        db.func.to_char(Asistencia.fecha, 'YYYY-MM-DD') == hoy_str
     ).first()
 
     if existe:
@@ -62,11 +63,12 @@ def procesar_qr():
         nueva_asistencia = Asistencia(
             estudiante_id=current_user.id,
             materia_id=materia.id,
-            fecha=ahora_vzla,  # <--- FORZAMOS HORA VZLA
+            fecha=ahora_vzla,  # Forzamos la hora exacta de Vzla al guardar
             estado='Presente'
         )
         db.session.add(nueva_asistencia)
         db.session.commit()
+        # Mensaje de éxito con la hora real de la tarjeta
         flash(f'✅ ¡Éxito! Asistencia registrada en {materia.nombre} ({ahora_vzla.strftime("%H:%M")})', 'success')
 
     return redirect(url_for('student.escaner'))
