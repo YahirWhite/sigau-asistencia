@@ -1,6 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
-from app.models import db, Asistencia, Materia, Configuracion
+# IMPORTANTE: Importamos obtener_hora_vzla
+from app.models import db, Asistencia, Materia, Configuracion, obtener_hora_vzla
 from datetime import datetime
 
 student_bp = Blueprint('student', __name__, url_prefix='/student')
@@ -12,43 +13,31 @@ def escaner():
     if current_user.rol != 'estudiante':
         return redirect(url_for('admin.dashboard'))
     
-    # Verificamos si hay inscripciones abiertas para mostrar una alerta visual
     config = Configuracion.query.first()
     inscripciones_abiertas = config.permitir_edicion if config else False
 
     return render_template('student/escaner.html', inscripciones_abiertas=inscripciones_abiertas)
 
-# --- 2. PROCESAR QR (BLINDADO) ---
+# --- 2. PROCESAR QR (CORREGIDO HORA VZLA) ---
 @student_bp.route('/procesar_qr', methods=['POST'])
 @login_required
 def procesar_qr():
     token = request.form.get('token')
     
-    # --- 0. SEGURIDAD CRÍTICA ---
-    # Verificar que el token no venga vacío o nulo
     if not token:
         flash('❌ Error: No se leyó ningún código. Intenta escanear de nuevo.', 'danger')
         return redirect(url_for('student.escaner'))
 
-    # 1. Buscar materia con ese token activo
-    # NOTA: Cuando el profesor cierra la clase, pone el token en NULL.
-    # Por lo tanto, si el alumno usa un token viejo, esta búsqueda dará "None"
-    # y entrará en el 'if not materia' de abajo, bloqueando el paso.
     materia = Materia.query.filter_by(token_activo=token).first()
     
     if not materia:
-        # AQUÍ ES DONDE REBOTA AL TRAMPOSO
         flash('⛔ El código QR ya expiró o la clase ha sido cerrada por el profesor.', 'danger')
         return redirect(url_for('student.escaner'))
 
-    # --- VALIDACIÓN DE SEGURIDAD DE SECCIÓN ---
-    
-    # A. Verificar si el estudiante configuró su perfil
     if not current_user.seccion_estudiante:
         flash('⚠️ Debes configurar tu Sección en el Perfil antes de marcar asistencia.', 'warning')
         return redirect(url_for('student.escaner'))
 
-    # B. Comparar Sección del Alumno vs Sección de la Materia
     sec_alumno = str(current_user.seccion_estudiante).strip().upper()
     sec_materia = str(materia.codigo_seccion).strip().upper()
 
@@ -56,14 +45,15 @@ def procesar_qr():
         flash(f'⛔ ACCESO DENEGADO: Tú eres de la Sección "{sec_alumno}" y esta clase es de la Sección "{sec_materia}".', 'danger')
         return redirect(url_for('student.escaner'))
 
-    # ------------------------------------------
+    # --- CORRECCIÓN DE HORA AQUÍ ---
+    ahora_vzla = obtener_hora_vzla()
+    hoy_vzla = ahora_vzla.date()
 
-    # 2. Verificar si ya marcó hoy
-    hoy = datetime.now().date()
+    # Verificar si ya marcó hoy usando la fecha de Venezuela
     existe = Asistencia.query.filter(
         Asistencia.estudiante_id == current_user.id,
         Asistencia.materia_id == materia.id,
-        db.func.date(Asistencia.fecha) == hoy
+        db.func.date(Asistencia.fecha) == hoy_vzla
     ).first()
 
     if existe:
@@ -72,23 +62,22 @@ def procesar_qr():
         nueva_asistencia = Asistencia(
             estudiante_id=current_user.id,
             materia_id=materia.id,
+            fecha=ahora_vzla,  # <--- FORZAMOS HORA VZLA
             estado='Presente'
         )
         db.session.add(nueva_asistencia)
         db.session.commit()
-        # Mensaje de éxito
-        flash(f'✅ ¡Éxito! Asistencia registrada en {materia.nombre} (Sección {sec_materia})', 'success')
+        flash(f'✅ ¡Éxito! Asistencia registrada en {materia.nombre} ({ahora_vzla.strftime("%H:%M")})', 'success')
 
     return redirect(url_for('student.escaner'))
 
-# --- 3. PERFIL Y ACTUALIZACIÓN DE DATOS ---
+# --- 3. PERFIL ---
 @student_bp.route('/perfil', methods=['GET', 'POST'])
 @login_required
 def perfil():
     if current_user.rol != 'estudiante':
         return redirect(url_for('admin.dashboard'))
 
-    # Verificar si el Admin permitió la edición
     config = Configuracion.query.first()
     permitir = config.permitir_edicion if config else False
 
@@ -100,9 +89,7 @@ def perfil():
         nuevo_semestre = request.form.get('semestre')
         nueva_seccion = request.form.get('seccion_estudiante')
 
-        # --- VALIDACIÓN: NO RETROCEDER SEMESTRE ---
         niveles = {'CAIU': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8}
-        
         nivel_actual = niveles.get(current_user.semestre, 0)
         nivel_nuevo = niveles.get(nuevo_semestre, 0)
 

@@ -8,6 +8,9 @@ def create_app():
     app = Flask(__name__)
     app.config.from_object(Config)
 
+    import os
+    os.environ['TZ'] = 'America/Caracas'
+
     # Inicializar extensiones
     db.init_app(app)
     migrate = Migrate(app, db)

@@ -1,5 +1,12 @@
 import os
 import sys
+import time
+
+# --- CONFIGURACIÓN DE HORA VENEZUELA (CRÍTICO PARA RENDER) ---
+os.environ['TZ'] = 'America/Caracas'
+if sys.platform != "win32":
+    time.tzset() # Configura la zona horaria en servidores Linux (como Render)
+# -------------------------------------------------------------
 
 # 1. Configuración de codificación para Windows (CRÍTICO)
 os.environ["PGMESSAGES"] = "C"
