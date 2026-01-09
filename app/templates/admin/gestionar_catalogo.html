@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto">
+    
+    <div class="flex items-center gap-4 mb-6 px-4 pt-6">
+        <a href="{{ url_for('admin.dashboard') }}" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-600 hover:text-azul-inst">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <h1 class="text-2xl font-bold text-azul-inst">Catálogo de Materias</h1>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-sm border border-gray-100 p-6 mx-4 mb-6">
+        <form method="POST" class="flex gap-2">
+            <input type="text" name="nombre_materia" placeholder="Ej. Ciberseguridad I" required
+                   class="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-azul-sec/50">
+            <button type="submit" class="bg-azul-inst text-white w-12 rounded-xl flex items-center justify-center hover:bg-opacity-90">
+                <i class="fas fa-plus"></i>
+            </button>
+        </form>
+    </div>
+
+    <div class="mx-4 space-y-2">
+        {% for m in materias %}
+        <div class="bg-white p-4 rounded-xl border border-gray-100 flex justify-between items-center">
+            <span class="font-bold text-gray-700">{{ m.nombre }}</span>
+            <a href="{{ url_for('admin.eliminar_catalogo', id=m.id) }}" class="text-red-400 hover:text-red-600 p-2">
+                <i class="fas fa-trash"></i>
+            </a>
+        </div>
+        {% else %}
+        <p class="text-center text-gray-400 py-4">No hay materias registradas aún.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

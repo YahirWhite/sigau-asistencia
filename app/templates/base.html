@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es" class="transition-colors duration-300">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistencia QR</title>
+    
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Habilita el modo oscuro por clase
+            theme: {
+                extend: {
+                    colors: {
+                        'azul-inst': '#003366',   
+                        'azul-sec': '#0055A4',    
+                        'amarillo': '#FFD700',    
+                        'amarillo-dark': '#B8860B', 
+                        'gris-fondo': '#F3F4F6',  
+                        'gris-texto': '#1F2937',  
+                        'gris-input': '#F9FAFB'   
+                    }
+                }
+            }
+        }
+    </script>
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+
+    <style>
+        /* Scrollbars adaptables al modo oscuro */
+        .overflow-x-auto::-webkit-scrollbar { height: 10px; }
+        .overflow-x-auto::-webkit-scrollbar-track { background: transparent; }
+        .overflow-x-auto::-webkit-scrollbar-thumb { 
+            background: #cbd5e1; 
+            border-radius: 10px; 
+        }
+        .dark .overflow-x-auto::-webkit-scrollbar-thumb { background: #475569; }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .animate-bounce-in {
+            animation: bounceIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+    </style>
+
+    <script>
+        if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+</head>
+
+<body class="bg-gris-fondo dark:bg-slate-900 text-gris-texto dark:text-gray-100 font-sans min-h-screen flex flex-col antialiased transition-colors duration-300">
+
+    <button id="theme-toggle" class="fixed bottom-6 right-6 z-50 w-12 h-12 rounded-full bg-azul-inst dark:bg-amarillo text-white dark:text-azul-inst shadow-lg flex items-center justify-center transition-all active:scale-90 hover:scale-110 border-2 border-white/20 dark:border-black/10 pointer-events-auto">
+        <i id="theme-toggle-dark-icon" class="hidden fas fa-moon"></i>
+        <i id="theme-toggle-light-icon" class="hidden fas fa-sun"></i>
+    </button>
+
+    <div class="fixed top-0 left-0 right-0 z-50 p-4 pointer-events-none">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="max-w-md mx-auto mb-3 pointer-events-auto shadow-lg rounded-xl overflow-hidden animate-bounce-in
+                        {% if category == 'success' %} bg-green-100 dark:bg-green-900/30 border-l-4 border-green-500 text-green-800 dark:text-green-200
+                        {% elif category == 'danger' %} bg-red-100 dark:bg-red-900/30 border-l-4 border-red-500 text-red-800 dark:text-red-200
+                        {% else %} bg-blue-100 dark:bg-blue-900/30 border-l-4 border-blue-500 text-blue-800 dark:text-blue-200 {% endif %}">
+                        <div class="p-4 flex items-center justify-between">
+                            <span class="font-medium text-sm">{{ message }}</span>
+                            <button onclick="this.parentElement.parentElement.remove()" class="opacity-50 hover:opacity-100 px-2">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+    </div>
+
+    <main class="flex-grow flex flex-col justify-center w-full max-w-md mx-auto px-4 sm:px-0 py-6">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const darkIcon = document.getElementById('theme-toggle-dark-icon');
+        const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+        // Sincronizar iconos inicialmente
+        if (document.documentElement.classList.contains('dark')) {
+            lightIcon.classList.remove('hidden');
+        } else {
+            darkIcon.classList.remove('hidden');
+        }
+
+        themeToggleBtn.addEventListener('click', function() {
+            darkIcon.classList.toggle('hidden');
+            lightIcon.classList.toggle('hidden');
+
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('color-theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('color-theme', 'dark');
+            }
+        });
+    </script>
+</body>
+</html>

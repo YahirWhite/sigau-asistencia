@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto pb-10">
+    
+    <div class="flex items-center gap-4 mb-6 px-4 pt-6">
+        <a href="{{ url_for('student.escaner') }}" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-600 hover:text-azul-inst">
+            <i class="fas fa-arrow-left"></i>
+        </a>
+        <div>
+            <h1 class="text-2xl font-bold text-azul-inst">Mi Perfil</h1>
+            <p class="text-sm text-gray-500">Datos Académicos</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 mx-4 relative overflow-hidden">
+        
+        <div class="absolute top-0 left-0 right-0 h-1.5 {{ 'bg-green-500' if permitir else 'bg-red-500' }}"></div>
+
+        <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-azul-inst/10 rounded-full flex items-center justify-center text-azul-inst">
+                    <i class="fas fa-user-graduate text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-800">{{ current_user.nombre }}</h3>
+                    <p class="text-xs text-gray-400 font-mono">{{ current_user.cedula }}</p>
+                </div>
+            </div>
+            
+            {% if permitir %}
+            <span class="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full border border-green-200">
+                EDICIÓN ABIERTA
+            </span>
+            {% else %}
+            <span class="bg-red-50 text-red-500 text-[10px] font-bold px-2 py-1 rounded-full border border-red-100">
+                CERRADO
+            </span>
+            {% endif %}
+        </div>
+
+        <form method="POST" class="space-y-5">
+            
+            <div>
+                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Semestre Actual</label>
+                {% if permitir %}
+                    <select name="semestre" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-azul-sec/50">
+                        <option value="{{ current_user.semestre }}" selected class="font-bold bg-gray-200">
+                            Actual: {{ current_user.semestre }}
+                        </option>
+                        <option disabled>──────────</option>
+                        <option value="CAIU">CAIU (Nuevo Ingreso)</option>
+                        {% for i in range(1, 9) %}
+                            <option value="{{ i }}">{{ i }}° Semestre</option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <div class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-gray-600 font-bold">
+                        {{ current_user.semestre }}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Sección</label>
+                {% if permitir %}
+                    <select name="seccion_estudiante" class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-azul-sec/50 font-mono">
+                        <option value="{{ current_user.seccion_estudiante }}" selected class="font-bold bg-gray-200">
+                            Actual: {{ current_user.seccion_estudiante }}
+                        </option>
+                        <option disabled>──────────</option>
+                         <optgroup label="Regulares">
+                            {% for i in range(1, 25) %}
+                                <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </optgroup>
+                        <optgroup label="Nuevo Ingreso (CAIU)">
+                            {% for i in range(1, 25) %}
+                                <option value="CAIU-{{ i }}">CAIU-{{ i }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    </select>
+                {% else %}
+                    <div class="w-full bg-gray-50 border border-gray-100 rounded-xl px-4 py-3 text-gray-600 font-bold font-mono">
+                        {{ current_user.seccion_estudiante }}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if permitir %}
+            <button type="submit" class="w-full bg-azul-inst text-white font-bold py-3.5 rounded-xl shadow-lg hover:bg-opacity-90 transition-all mt-4">
+                <i class="fas fa-save mr-2"></i> Guardar Cambios
+            </button>
+            <p class="text-[10px] text-center text-gray-400 mt-2">
+                Nota: Solo puedes avanzar de semestre. No se permiten retrocesos.
+            </p>
+            {% else %}
+            <div class="bg-yellow-50 text-yellow-700 text-xs p-3 rounded-xl border border-yellow-100 flex gap-2">
+                <i class="fas fa-lock mt-0.5"></i>
+                <p>Para cambiar tus datos, solicita al departamento de Control de Estudios que abra el proceso de inscripciones.</p>
+            </div>
+            {% endif %}
+
+        </form>
+    </div>
+</div>
+{% endblock %}

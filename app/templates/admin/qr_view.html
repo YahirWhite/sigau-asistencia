@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block content %}
+<meta http-equiv="refresh" content="5">
+
+<div class="min-h-screen bg-azul-inst p-4 pb-20 flex flex-col items-center">
+    
+    <div class="bg-white p-6 rounded-3xl shadow-2xl w-full max-w-md text-center animate-fade-in-up mb-8">
+        
+        <h2 class="text-gray-500 font-bold uppercase text-xs tracking-widest mb-1">Escanea para Asistir</h2>
+        <h1 class="text-2xl font-bold text-azul-inst mb-4">{{ materia.nombre }}</h1>
+        
+        <div class="bg-gray-100 p-4 rounded-xl border-2 border-dashed border-gray-300 inline-block mb-4">
+            <img src="data:image/png;base64,{{ qr_image }}" alt="QR Asistencia" class="w-48 h-48 object-contain mix-blend-multiply">
+        </div>
+
+        <div class="bg-yellow-50 rounded-lg p-2 mb-4">
+            <p class="text-3xl font-mono font-bold text-azul-inst tracking-widest">{{ materia.token_activo }}</p>
+        </div>
+
+        <a href="{{ url_for('admin.cerrar_clase', materia_id=materia.id) }}" 
+           onclick="return confirm('¿Seguro que deseas cerrar la asistencia? El código QR dejará de funcionar.');"
+           class="block w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition-colors shadow-lg">
+            <i class="fas fa-lock mr-2"></i> Cerrar Asistencia y Verificar
+        </a>
+        <p class="text-xs text-gray-400 mt-2">Al hacer clic, nadie más podrá registrarse.</p>
+    </div>
+
+    <div class="w-full max-w-md">
+        <div class="flex items-center justify-between text-white mb-3 px-2">
+            <h3 class="font-bold text-lg"><i class="fas fa-users mr-2"></i>Asistentes</h3>
+            <span class="bg-amarillo text-azul-inst font-bold px-3 py-1 rounded-full text-sm">
+                Total: {{ asistencias|length }}
+            </span>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+            {% if asistencias %}
+                <div class="overflow-y-auto max-h-64"> 
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-100 text-gray-500 text-xs uppercase sticky top-0">
+                            <tr>
+                                <th class="p-4">Estudiante</th>
+                                <th class="p-4 text-center">Hora</th>
+                                <th class="p-4 text-center">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            {% for asistencia in asistencias %}
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="p-4">
+                                    <p class="font-bold text-gray-800 text-sm">{{ asistencia.estudiante.nombre }}</p>
+                                    <p class="text-xs text-gray-400">{{ asistencia.estudiante.cedula }}</p>
+                                </td>
+                                <td class="p-4 text-center text-sm text-gray-500 font-mono">
+                                    {{ asistencia.fecha.strftime('%H:%M') }}
+                                </td>
+                                <td class="p-4 text-center">
+                                    <a href="{{ url_for('admin.eliminar_asistencia', asistencia_id=asistencia.id) }}" 
+                                       onclick="return confirm('¿Sacar a este estudiante de la lista?');"
+                                       class="text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors">
+                                        <i class="fas fa-times text-lg"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="p-8 text-center text-gray-400">
+                    <i class="fas fa-user-clock text-4xl mb-2 opacity-50"></i>
+                    <p class="text-sm">Esperando escaneos...</p>
+                    <p class="text-xs mt-1 text-amarillo animate-pulse">El QR está activo</p>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="text-center mt-4">
+            <a href="{{ url_for('admin.ver_qr', materia_id=materia.id) }}" class="text-white/70 text-sm hover:text-white underline">
+                <i class="fas fa-sync-alt mr-1"></i> Actualizar lista manualmente
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

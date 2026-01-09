@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-gray-100 p-4">
+    <div class="bg-white p-8 rounded-2xl shadow-xl w-full max-w-md">
+        <div class="text-center mb-6">
+            <h2 class="text-2xl font-bold text-azul-inst">Recuperar Acceso</h2>
+            <p class="text-gray-500 text-sm">Ingresa tu cédula y la nueva contraseña que deseas usar.</p>
+        </div>
+
+        <form method="POST">
+            <div class="mb-4">
+                <label class="block text-gray-700 font-bold mb-2">Cédula de Identidad</label>
+                <input type="text" name="cedula" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-azul-inst" placeholder="Ej: 28123456">
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-gray-700 font-bold mb-2">Nueva Contraseña</label>
+                <input type="password" name="nueva_clave" required class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-azul-inst" placeholder="Mínimo 6 caracteres">
+            </div>
+
+            <button type="submit" class="w-full bg-azul-inst text-white font-bold py-3 rounded-xl hover:bg-opacity-90 transition">
+                Enviar Solicitud
+            </button>
+        </form>
+
+        <div class="mt-4 text-center">
+            <a href="{{ url_for('auth.login') }}" class="text-gray-500 hover:text-azul-inst text-sm">Volver al Login</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

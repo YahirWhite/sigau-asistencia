@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto p-6">
+    <h1 class="text-2xl font-bold text-azul-inst mb-6">Solicitudes de Cambio de Contraseña</h1>
+
+    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+        {% if solicitudes %}
+        <table class="w-full text-left">
+            <thead class="bg-gray-100 text-gray-600 uppercase text-xs">
+                <tr>
+                    <th class="p-4">Estudiante</th>
+                    <th class="p-4">Cédula</th>
+                    <th class="p-4">Fecha Solicitud</th>
+                    <th class="p-4 text-center">Acción</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for sol in solicitudes %}
+                <tr>
+                    <td class="p-4 font-bold">{{ sol.usuario.nombre }}</td>
+                    <td class="p-4 text-gray-500">{{ sol.usuario.cedula }}</td>
+                    <td class="p-4 text-sm">{{ sol.fecha_solicitud.strftime('%d/%m %H:%M') }}</td>
+                    <td class="p-4 flex justify-center gap-2">
+                        <a href="{{ url_for('admin.aprobar_clave', id=sol.id) }}" class="bg-green-100 text-green-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-green-200">
+                            Aprobar
+                        </a>
+                        <a href="{{ url_for('admin.rechazar_clave', id=sol.id) }}" class="bg-red-100 text-red-700 px-3 py-1 rounded-lg text-xs font-bold hover:bg-red-200">
+                            Rechazar
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="p-8 text-center text-gray-400">
+            <p>No hay solicitudes pendientes.</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="mt-4">
+        <a href="{{ url_for('admin.dashboard') }}" class="text-gray-500 hover:underline">Volver al Dashboard</a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-50 pb-20"> 
+    
+    <div class="bg-azul-inst pt-8 pb-12 px-6 shadow-lg rounded-b-[2.5rem]">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+            
+            <div class="flex items-center gap-4 text-white">
+                <a href="{{ url_for('admin.dashboard') }}" 
+                   class="w-10 h-10 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-all backdrop-blur-sm">
+                    <i class="fas fa-arrow-left"></i>
+                </a>
+                
+                <div>
+                    <h1 class="text-3xl font-bold leading-none">
+                        {% if current_user.rol == 'admin' %}
+                            <i class="fas fa-user-shield text-amarillo mr-2"></i>Control Global
+                        {% else %}
+                            Historial de Asistencia
+                        {% endif %}
+                    </h1>
+                    <p class="text-blue-100 text-sm mt-1 opacity-90">
+                        {% if current_user.rol == 'admin' %}
+                            Vista de administrador (Todas las materias)
+                        {% else %}
+                            Registro de mis clases dictadas
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <a href="{{ url_for('admin.descargar_reporte', **request.args) }}" 
+               class="bg-green-100 text-green-700 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-green-200 transition-colors shadow-lg flex items-center transform hover:scale-105 duration-200 border border-green-200">
+                <i class="fas fa-file-excel mr-2 text-lg"></i> Exportar CSV
+            </a>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-4 -mt-8">
+
+        <div class="bg-white p-6 rounded-2xl shadow-md mb-6 border border-gray-100">
+            <h2 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Filtros de Búsqueda</h2>
+            
+            <form method="GET" action="{{ url_for('admin.historial') }}" class="flex flex-wrap gap-4 items-end">
+                
+                <div class="flex-1 min-w-[200px]">
+                    <label class="block text-gray-700 text-xs font-bold mb-2 ml-1">Materia</label>
+                    <div class="relative">
+                        <i class="fas fa-book absolute left-3 top-3 text-gray-400"></i>
+                        <select name="materia_id" class="w-full border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-azul-inst focus:border-transparent transition-all outline-none appearance-none">
+                            <option value="">Todas las materias</option>
+                            {% for m in materias %}
+                                <option value="{{ m.id }}" {% if request.args.get('materia_id')|int == m.id %}selected{% endif %}>
+                                    {{ m.nombre }} - {{ m.codigo_seccion }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="w-32">
+                    <label class="block text-gray-700 text-xs font-bold mb-2 ml-1">Sección</label>
+                    <div class="relative">
+                        <i class="fas fa-users absolute left-3 top-3 text-gray-400"></i>
+                        <select name="seccion" class="w-full border border-gray-200 rounded-xl py-2.5 pl-10 pr-4 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-azul-inst outline-none appearance-none">
+                            <option value="">Todas</option>
+                            {% for sec in secciones %}
+                                <option value="{{ sec }}" {% if request.args.get('seccion') == sec %}selected{% endif %}>
+                                    {{ sec }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="w-40">
+                    <label class="block text-gray-700 text-xs font-bold mb-2 ml-1">Fecha</label>
+                    <input type="date" name="fecha" value="{{ request.args.get('fecha', '') }}" class="w-full border border-gray-200 rounded-xl p-2.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-azul-inst outline-none text-gray-600">
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="submit" class="bg-azul-inst text-white px-6 py-2.5 rounded-xl hover:bg-opacity-90 shadow-md transition-all active:scale-95 font-medium">
+                        <i class="fas fa-filter mr-2"></i>Filtrar
+                    </button>
+                    
+                    {% if request.args %}
+                    <a href="{{ url_for('admin.historial') }}" class="bg-gray-100 text-gray-500 px-4 py-2.5 rounded-xl hover:bg-red-50 hover:text-red-500 transition-colors border border-gray-200" title="Limpiar">
+                        <i class="fas fa-times"></i>
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead class="bg-gray-100 border-b border-gray-200">
+                        <tr>
+                            <th class="p-5 text-xs font-bold text-gray-500 uppercase tracking-wider">Fecha / Hora</th>
+                            <th class="p-5 text-xs font-bold text-gray-500 uppercase tracking-wider">Estudiante</th>
+                            <th class="p-5 text-xs font-bold text-gray-500 uppercase tracking-wider">Materia</th>
+                            {% if current_user.rol == 'admin' %}
+                            <th class="p-5 text-xs font-bold text-azul-sec uppercase tracking-wider">Docente</th>
+                            {% endif %}
+                            <th class="p-5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 text-sm">
+                        {% for asistencia in asistencias %}
+                        <tr class="hover:bg-blue-50 transition-colors group even:bg-gray-50">
+                            
+                            <td class="p-5 whitespace-nowrap">
+                                <div class="font-bold text-gray-700">{{ asistencia.fecha.strftime('%d/%m/%Y') }}</div>
+                                <div class="text-xs text-gray-400 font-mono mt-1 bg-white inline-block px-1 rounded border border-gray-100">
+                                    {{ asistencia.fecha.strftime('%H:%M:%S') }}
+                                </div>
+                            </td>
+                            
+                            <td class="p-5">
+                                <div class="font-bold text-gray-800 text-base">{{ asistencia.estudiante.nombre }}</div>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <span class="text-xs text-gray-500">{{ asistencia.estudiante.cedula }}</span>
+                                    
+                                    <span class="text-[10px] px-1.5 py-0.5 rounded border 
+                                        {{ 'bg-yellow-50 text-yellow-700 border-yellow-200' if not asistencia.estudiante.seccion_estudiante else 'bg-gray-100 text-gray-600 border-gray-200' }}">
+                                        Sec: {{ asistencia.estudiante.seccion_estudiante or 'S/D' }}
+                                    </span>
+                                </div>
+                            </td>
+                            
+                            <td class="p-5">
+                                <div class="text-sm font-medium text-gray-700">{{ asistencia.materia.nombre }}</div>
+                                <div class="text-xs text-azul-inst font-bold mt-1">Sección: {{ asistencia.materia.codigo_seccion }}</div>
+                            </td>
+
+                            {% if current_user.rol == 'admin' %}
+                            <td class="p-5">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 rounded-full bg-azul-sec text-white flex items-center justify-center text-xs font-bold uppercase shadow-sm">
+                                        {{ asistencia.materia.docente.nombre[0] }}
+                                    </div>
+                                    <span class="text-gray-600 font-medium text-xs truncate max-w-[120px]">
+                                        {{ asistencia.materia.docente.nombre }}
+                                    </span>
+                                </div>
+                            </td>
+                            {% endif %}
+
+                            <td class="p-5 text-center">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold shadow-sm border border-green-200">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Presente
+                                </span>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="{% if current_user.rol == 'admin' %}5{% else %}4{% endif %}" class="p-12 text-center">
+                                <div class="flex flex-col items-center justify-center">
+                                    <div class="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mb-4">
+                                        <i class="fas fa-search text-3xl text-gray-300"></i>
+                                    </div>
+                                    <p class="font-bold text-gray-500 text-lg">No se encontraron registros</p>
+                                    <p class="text-sm text-gray-400 mt-1">Intenta ajustar los filtros.</p>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="bg-gray-50 p-4 text-right text-xs text-gray-500 border-t border-gray-200 font-medium flex justify-between items-center">
+                <span>Sistema de Asistencia QR</span>
+                <span>Total visualizado: <span class="font-bold text-azul-inst">{{ asistencias|length }}</span></span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="min-h-screen bg-black flex flex-col items-center justify-center p-4 relative overflow-hidden">
+    
+    <div class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10 bg-gradient-to-b from-black/90 to-transparent">
+        <div class="text-white">
+            <p class="text-xs opacity-70 uppercase tracking-widest font-bold">Estudiante</p>
+            <p class="font-bold text-lg text-azul-inst">{{ current_user.nombre }}</p>
+        </div>
+        
+        <div class="flex gap-3">
+            <a href="{{ url_for('student.perfil') }}" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-azul-inst transition-colors relative border border-white/10">
+                <i class="fas fa-user-cog"></i>
+                {% if inscripciones_abiertas %}
+                <span class="absolute top-0 right-0 w-3 h-3 bg-green-500 border-2 border-black rounded-full animate-pulse"></span>
+                {% endif %}
+            </a>
+
+            <a href="{{ url_for('auth.logout') }}" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-red-500 transition-colors border border-white/10">
+                <i class="fas fa-power-off"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="w-full max-w-sm relative mt-[-20px] flex flex-col items-center">
+        
+        <div class="w-full aspect-square relative rounded-3xl overflow-hidden border-2 border-white/20 shadow-2xl shadow-azul-inst/30 bg-gray-900">
+            <div id="reader" class="w-full h-full object-cover"></div>
+            
+            <div class="absolute top-0 left-0 w-full h-1 bg-azul-inst/80 shadow-[0_0_20px_rgba(0,100,255,0.8)] animate-scan z-10 pointer-events-none"></div>
+            
+            <div class="absolute top-4 left-4 w-8 h-8 border-t-4 border-l-4 border-white rounded-tl-lg opacity-80 pointer-events-none"></div>
+            <div class="absolute top-4 right-4 w-8 h-8 border-t-4 border-r-4 border-white rounded-tr-lg opacity-80 pointer-events-none"></div>
+            <div class="absolute bottom-4 left-4 w-8 h-8 border-b-4 border-l-4 border-white rounded-bl-lg opacity-80 pointer-events-none"></div>
+            <div class="absolute bottom-4 right-4 w-8 h-8 border-b-4 border-r-4 border-white rounded-br-lg opacity-80 pointer-events-none"></div>
+        </div>
+
+        <p class="text-white text-center mt-4 text-sm opacity-60">
+            Apunta la cámara al código QR del profesor
+        </p>
+
+        <div class="flex items-center w-full my-6">
+            <div class="h-px bg-white/20 flex-1"></div>
+            <span class="px-3 text-white/40 text-xs font-bold uppercase">O ingresa el código</span>
+            <div class="h-px bg-white/20 flex-1"></div>
+        </div>
+
+        <div class="w-full flex gap-2">
+            <input type="text" id="inputCodigo" placeholder="Ej: A1B2" maxlength="10"
+                   class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white text-center font-mono text-lg tracking-widest uppercase focus:outline-none focus:border-azul-inst focus:bg-white/20 placeholder-white/30 transition-all">
+            
+            <button onclick="enviarManual()" 
+                    class="bg-white text-black font-bold px-6 py-3 rounded-xl hover:bg-azul-inst hover:text-white transition-colors">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+
+    </div>
+
+    <form id="qr-form" method="POST" action="{{ url_for('student.procesar_qr') }}" class="hidden">
+        <input type="hidden" name="token" id="token-input">
+    </form>
+
+</div>
+
+<script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+
+<script>
+    const beepSound = new Audio('https://www.soundjay.com/buttons/beep-01a.mp3'); 
+    let html5QrcodeScanner;
+
+    // --- ENVIAR TOKEN AL BACKEND ---
+    // Usamos el formulario oculto para que la página se recargue y muestre las Alertas Flash del Base.html
+    function enviarToken(token) {
+        if (!token) {
+            alert("Por favor escribe el código.");
+            return;
+        }
+
+        beepSound.play().catch(e => console.log("Audio bloqueado"));
+        
+        // Poner el token en el input oculto y enviar
+        document.getElementById('token-input').value = token;
+        document.getElementById('qr-form').submit();
+    }
+
+    // --- MANEJO DE CÁMARA ---
+    function onScanSuccess(decodedText, decodedResult) {
+        if (html5QrcodeScanner) {
+            html5QrcodeScanner.clear(); 
+        }
+        enviarToken(decodedText);
+    }
+
+    function iniciarCamara() {
+        html5QrcodeScanner = new Html5QrcodeScanner(
+            "reader", { fps: 10, qrbox: {width: 250, height: 250} }, false
+        );
+        html5QrcodeScanner.render(onScanSuccess, (e) => {});
+    }
+
+    // --- MANEJO MANUAL ---
+    function enviarManual() {
+        const codigo = document.getElementById('inputCodigo').value.toUpperCase().trim();
+        enviarToken(codigo);
+    }
+
+    document.addEventListener('DOMContentLoaded', iniciarCamara);
+</script>
+
+<style>
+    @keyframes scan {
+        0% { top: 0%; opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { top: 100%; opacity: 0; }
+    }
+    .animate-scan {
+        animation: scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+</style>
+{% endblock %}
