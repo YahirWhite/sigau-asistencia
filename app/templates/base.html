@@ -7,11 +7,11 @@
     
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
 
-    <script src="{{ url_for('static', filename='js/tailwind.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/html5-qrcode.min.js') }}"></script>
+    <script nonce="{{ csp_nonce() }}" src="{{ url_for('static', filename='js/tailwind.js') }}"></script>
+    <script nonce="{{ csp_nonce() }}" src="{{ url_for('static', filename='js/html5-qrcode.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome.all.min.css') }}">
     
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         tailwind.config = {
             darkMode: 'class',
             theme: {
@@ -77,7 +77,7 @@
         }
     </style>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         } else {
@@ -117,7 +117,7 @@
         {% block content %}{% endblock %}
     </main>
 
-    <script>
+    <script nonce="{{ csp_nonce() }}">
         const themeToggleBtn = document.getElementById('theme-toggle');
         const darkIcon = document.getElementById('theme-toggle-dark-icon');
         const lightIcon = document.getElementById('theme-toggle-light-icon');

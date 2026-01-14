@@ -17,31 +17,35 @@ def create_app():
     db.init_app(app)
     migrate = Migrate(app, db)
 
-    # --- CONFIGURACIÓN DE SEGURIDAD (TALISMAN) ---
-    # Se ajustó el CSP para permitir la ejecución de Tailwind y hardware de cámara
+    # --- NUEVA CONFIGURACIÓN DE SEGURIDAD (CON NONCES) ---
+    csp = {
+        'default-src': "'self'",
+        'script-src': [
+            "'self'",
+            # Se elimina "'unsafe-inline'" porque ahora usaremos NONCES
+            "'unsafe-eval'"    # Requerido por el motor del escáner QR
+        ],
+        'style-src': [
+            "'self'",
+            "'unsafe-inline'"  # Se mantiene para que Tailwind inyecte estilos dinámicos
+        ],
+        'img-src': ["'self'", "data:", "blob:"],
+        'font-src': "'self'",
+        'connect-src': "'self'",
+        'media-src': ["'self'", "blob:"]
+    }
+
     Talisman(app, 
              force_https=True, 
              frame_options='DENY',
-             content_security_policy={
-                 'default-src': "'self'",
-                 'script-src': [
-                     "'self'",
-                     "'unsafe-inline'", # Para tailwind.config y Dark Mode
-                     "'unsafe-eval'"    # Para el procesador de video del QR
-                 ],
-                 'style-src': [
-                     "'self'",
-                     "'unsafe-inline'"  # Para tus animaciones y estilos internos
-                 ],
-                 'img-src': ["'self'", "data:", "blob:"],
-                 'font-src': "'self'",  # YA NO NECESITA 'https://' EXTERNOS
-                 'connect-src': "'self'",
-                 'media-src': ["'self'", "blob:"] # Para la cámara
-             })
+             content_security_policy=csp,
+             # ESTA LÍNEA ACTIVA EL NONCE: Flask buscará etiquetas <script> y les dará un ID único
+             content_security_policy_nonce_in=['script-src']
+    )
              
     # --- CONFIGURACIÓN DE COOKIES SEGURAS ---
     app.config.update(
-        SESSION_COOKIE_SECURE=False,   # True solo en Render
+        SESSION_COOKIE_SECURE=True,   # Cambiado a True para mayor seguridad en producción
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax',
     )
@@ -71,4 +75,4 @@ def create_app():
     def index():
         return redirect(url_for('auth.login'))
 
-    return app # <--- IMPORTANTE: Alineado con el inicio de la función
+    return app

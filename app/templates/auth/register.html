@@ -23,14 +23,14 @@
 
             <div>
                 <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Cédula</label>
-                <input type="text" name="cedula" required pattern="\d{6,9}" title="Debe tener entre 6 y 9 dígitos"
-                       class="input-std font-mono" placeholder="Ej. 28123456" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 9)">
+                <input type="text" id="cedulaInput" name="cedula" required pattern="\d{6,9}" title="Debe tener entre 6 y 9 dígitos"
+                       class="input-std font-mono" placeholder="Ej. 28123456">
             </div>
 
             <div>
                 <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Teléfono</label>
-                <input type="tel" name="telefono" required pattern="\d{11}" title="Debe tener exactamente 11 dígitos"
-                       class="input-std font-mono" placeholder="04125724190" oninput="this.value = this.value.replace(/[^0-9]/g, '').slice(0, 11)">
+                <input type="tel" id="telefonoInput" name="telefono" required pattern="\d{11}" title="Debe tener exactamente 11 dígitos"
+                       class="input-std font-mono" placeholder="04125724190">
             </div>
 
             <div>
@@ -42,11 +42,11 @@
                 <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Soy...</label>
                 <div class="grid grid-cols-2 gap-3">
                     <label class="cursor-pointer">
-                        <input type="radio" name="rol" value="estudiante" checked class="peer sr-only" onchange="toggleCampos(true)">
+                        <input type="radio" name="rol" value="estudiante" checked class="peer sr-only">
                         <div class="rol-card border-azul-inst text-azul-inst dark:border-blue-500 dark:text-blue-300 bg-azul-inst/5">Estudiante</div>
                     </label>
                     <label class="cursor-pointer">
-                        <input type="radio" name="rol" value="docente" class="peer sr-only" onchange="toggleCampos(false)">
+                        <input type="radio" name="rol" value="docente" class="peer sr-only">
                         <div class="rol-card border-gray-200 dark:border-slate-600 text-gray-400 dark:text-slate-500">Docente</div>
                     </label>
                 </div>
@@ -89,7 +89,6 @@
 </div>
 
 <style>
-    /* Estilo para Modo Claro (Texto negro, fondo blanco) */
     .input-std { 
         width: 100%; 
         border-radius: 0.75rem; 
@@ -101,11 +100,9 @@
         -webkit-text-fill-color: #111827 !important;
     }
     
-    /* CORRECCIÓN PARA MODO OSCURO (Fondo oscuro, letra blanca) */
-    /* Usamos html.dark para asegurar que detecte la clase del base.html */
     html.dark .input-std {
-        background-color: #1e293b !important; /* Azul pizarra oscuro */
-        color: #ffffff !important;           /* Blanco puro */
+        background-color: #1e293b !important; 
+        color: #ffffff !important;           
         -webkit-text-fill-color: #ffffff !important;
         border-color: #475569 !important;
     }
@@ -131,7 +128,7 @@
     }
 </style>
 
-<script>
+<script nonce="{{ csp_nonce() }}">
     function toggleCampos(esEstudiante) {
         const div = document.getElementById('camposEstudiante');
         if (esEstudiante) {
@@ -142,5 +139,27 @@
             div.querySelectorAll('select').forEach(s => s.disabled = true);
         }
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // Manejador para el cambio de Rol (Estudiante/Docente)
+        document.querySelectorAll('input[name="rol"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                toggleCampos(e.target.value === 'estudiante');
+            });
+        });
+
+        // Manejador para limpiar inputs de solo números (Cédula y Teléfono)
+        const formatNumbers = (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            if (e.target.id === 'cedulaInput') e.target.value = e.target.value.slice(0, 9);
+            if (e.target.id === 'telefonoInput') e.target.value = e.target.value.slice(0, 11);
+        };
+
+        const cedula = document.getElementById('cedulaInput');
+        const tlf = document.getElementById('telefonoInput');
+        
+        if(cedula) cedula.addEventListener('input', formatNumbers);
+        if(tlf) tlf.addEventListener('input', formatNumbers);
+    });
 </script>
 {% endblock %}

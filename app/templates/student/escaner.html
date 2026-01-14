@@ -50,7 +50,7 @@
             <input type="text" id="inputCodigo" placeholder="Ej: A1B2" maxlength="10"
                    class="flex-1 bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white text-center font-mono text-lg tracking-widest uppercase focus:outline-none focus:border-azul-inst focus:bg-white/20 placeholder-white/30 transition-all">
             
-            <button onclick="enviarManual()" 
+            <button id="btnEnviarManual" 
                     class="bg-white text-black font-bold px-6 py-3 rounded-xl hover:bg-azul-inst hover:text-white transition-colors">
                 <i class="fas fa-paper-plane"></i>
             </button>
@@ -64,27 +64,29 @@
 
 </div>
 
-<script>
-    const beepSound = new Audio('https://www.soundjay.com/buttons/beep-01a.mp3'); 
+<script nonce="{{ csp_nonce() }}">
+    // 1. Audio Local (Debes descargar el mp3 a static/audio/beep.mp3)
+    const beepSound = new Audio("{{ url_for('static', filename='audio/beep.mp3') }}"); 
     let html5QrCode;
 
     function enviarToken(token) {
         if (!token) return;
-        beepSound.play().catch(e => console.log("Audio bloqueado"));
+        try {
+            beepSound.play().catch(e => console.log("Audio bloqueado o no encontrado"));
+        } catch (e) {}
+        
         document.getElementById('token-input').value = token;
         document.getElementById('qr-form').submit();
     }
 
-    // --- NUEVA LÓGICA DE CÁMARA PRO ---
     function iniciarCamara() {
         html5QrCode = new Html5Qrcode("reader");
         const config = { 
-            fps: 15, // Un poco más rápido para mejor respuesta
+            fps: 15, 
             qrbox: { width: 250, height: 250 },
             aspectRatio: 1.0
         };
 
-        // FACING_MODE "environment" fuerza la cámara trasera
         html5QrCode.start(
             { facingMode: "environment" }, 
             config, 
@@ -94,8 +96,7 @@
                 });
             }
         ).catch(err => {
-            console.error("Error de cámara:", err);
-            // Si falla la cámara trasera, intenta con cualquier cámara disponible
+            console.error("Error de cámara trasera, intentando frontal:", err);
             html5QrCode.start({ facingMode: "user" }, config, (decodedText) => {
                 html5QrCode.stop().then(() => enviarToken(decodedText));
             });
@@ -107,11 +108,18 @@
         if(codigo) enviarToken(codigo);
     }
 
-    document.addEventListener('DOMContentLoaded', iniciarCamara);
+    // 2. Event Listeners (Reemplazan a los onchange/onclick del HTML)
+    document.addEventListener('DOMContentLoaded', () => {
+        iniciarCamara();
+        
+        const btnManual = document.getElementById('btnEnviarManual');
+        if (btnManual) {
+            btnManual.addEventListener('click', enviarManual);
+        }
+    });
 </script>
 
 <style>
-    /* Estilos para limpiar el visor de la cámara */
     #reader video {
         width: 100% !important;
         height: 100% !important;

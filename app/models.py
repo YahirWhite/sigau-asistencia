@@ -40,7 +40,8 @@ class SolicitudRecuperacion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     
-    # Corregido: Usamos la función obtener_hora_vzla
+    # IMPORTANTE: Se pasa la función sin paréntesis para que Flask-SQLAlchemy 
+    # la llame cada vez que se cree un objeto nuevo.
     fecha_solicitud = db.Column(db.DateTime, default=obtener_hora_vzla)
     nueva_clave_deseada = db.Column(db.String(100), nullable=True)
     estado = db.Column(db.String(20), default='pendiente') 
@@ -76,14 +77,14 @@ class Asistencia(db.Model):
     __tablename__ = 'asistencias'
     
     id = db.Column(db.Integer, primary_key=True)
-    # Corregido: Se pasa la función sin paréntesis para que se ejecute al insertar
+    # Se asegura que el default sea la función sin ejecutar
     fecha = db.Column(db.DateTime, default=obtener_hora_vzla)
     fecha_solo_dia = db.Column(db.Date, default=lambda: obtener_hora_vzla().date())
     
     estudiante_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     materia_id = db.Column(db.Integer, db.ForeignKey('materias.id'), nullable=False)
     
-    estado = db.Column(db.String(20), nullable=False, default='presente') 
+    estado = db.Column(db.String(20), nullable=False, default='Presente') 
     metodo = db.Column(db.String(20), default='qr') 
 
     estudiante = db.relationship('Usuario', backref='asistencias')
@@ -105,8 +106,6 @@ class SolicitudClave(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     usuario_id = db.Column(db.Integer, db.ForeignKey('usuarios.id'), nullable=False)
     nueva_clave_hash = db.Column(db.String(200), nullable=False)
-    
-    # CORRECCIÓN DEFINITIVA: Aquí estaba el error, se cambió utcnow por obtener_hora_vzla
     fecha_solicitud = db.Column(db.DateTime, default=obtener_hora_vzla)
 
     usuario = db.relationship('Usuario', backref='solicitudes_clave')
