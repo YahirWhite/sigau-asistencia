@@ -7,8 +7,9 @@
     
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
 
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="{{ url_for('static', filename='js/tailwind.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/html5-qrcode.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome.all.min.css') }}">
     
     <script>
         tailwind.config = {
@@ -29,8 +30,6 @@
         }
     </script>
 
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-
     <style>
         .overflow-x-auto::-webkit-scrollbar { height: 10px; }
         .overflow-x-auto::-webkit-scrollbar-track { background: transparent; }
@@ -46,8 +45,6 @@
         }
 
         /* --- CORRECCIÓN DE FUERZA MÁXIMA PARA VISIBILIDAD --- */
-        
-        /* 1. Modo Claro: Forzamos fondo blanco y letra negra en TODO tipo de input */
         input:not([type="radio"]):not([type="checkbox"]), select, textarea {
             background-color: #ffffff !important;
             color: #000000 !important;
@@ -55,7 +52,6 @@
             border: 1px solid #d1d5db !important;
         }
 
-        /* 2. Modo Oscuro: Forzamos fondo oscuro y letra blanca en TODO tipo de input */
         .dark input:not([type="radio"]):not([type="checkbox"]), 
         .dark select, 
         .dark textarea {
@@ -65,13 +61,11 @@
             border-color: #475569 !important;
         }
 
-        /* 3. Evitamos que los contenedores de los formularios se queden blancos en modo oscuro */
         .dark .bg-white, .dark .bg-gray-50 {
             background-color: #0f172a !important;
             color: #ffffff !important;
         }
 
-        /* 4. Placeholder legible */
         input::placeholder { color: #9ca3af !important; }
         .dark input::placeholder { color: #64748b !important; }
 

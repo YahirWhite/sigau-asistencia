@@ -20,50 +20,25 @@ def create_app():
     # --- CONFIGURACIÓN DE SEGURIDAD (TALISMAN) ---
     # Se ajustó el CSP para permitir la ejecución de Tailwind y hardware de cámara
     Talisman(app, 
-             force_https=False, 
+             force_https=True, 
              frame_options='DENY',
              content_security_policy={
-                 'default-src': '\'self\' https:',
+                 'default-src': "'self'",
                  'script-src': [
-                     '\'self\'',
-                     '\'unsafe-inline\'', 
-                     '\'unsafe-eval\'', 
-                     'https://cdn.tailwindcss.com',
-                     'https://kit.fontawesome.com',
-                     'https://cdn.jsdelivr.net',
-                     'https://unpkg.com',
-                     'https://ka-f.fontawesome.com'
+                     "'self'",
+                     "'unsafe-inline'", # Para tailwind.config y Dark Mode
+                     "'unsafe-eval'"    # Para el procesador de video del QR
                  ],
                  'style-src': [
-                     '\'self\'',
-                     '\'unsafe-inline\'', 
-                     'https://cdn.tailwindcss.com',
-                     'https://cdn.jsdelivr.net',
-                     'https://fonts.googleapis.com',
-                     'https://ka-f.fontawesome.com',
-                     'https://use.fontawesome.com',
-                     'https://cdnjs.cloudflare.com'
+                     "'self'",
+                     "'unsafe-inline'"  # Para tus animaciones y estilos internos
                  ],
-                 'font-src': [
-                     '\'self\'',
-                     'data:', 
-                     'https://fonts.gstatic.com',
-                     'https://ka-f.fontawesome.com',
-                     'https://use.fontawesome.com',
-                     'https://cdnjs.cloudflare.com'
-                 ],
-                 'img-src': ['\'self\'', 'data:', 'https:', 'blob:'],
-                 'media-src': ['\'self\'', 'blob:', 'https:'], 
-                 'connect-src': [
-                     '\'self\'', 
-                     'https://ka-f.fontawesome.com',
-                     'https://use.fontawesome.com',
-                     'https://cdn.tailwindcss.com',
-                     'https://fonts.googleapis.com',
-                     'https://fonts.gstatic.com'
-                 ],
+                 'img-src': ["'self'", "data:", "blob:"],
+                 'font-src': "'self'",  # YA NO NECESITA 'https://' EXTERNOS
+                 'connect-src': "'self'",
+                 'media-src': ["'self'", "blob:"] # Para la cámara
              })
-
+             
     # --- CONFIGURACIÓN DE COOKIES SEGURAS ---
     app.config.update(
         SESSION_COOKIE_SECURE=False,   # True solo en Render
