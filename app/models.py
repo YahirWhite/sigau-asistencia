@@ -8,8 +8,13 @@ db = SQLAlchemy()
 
 # --- FUNCIÓN AUXILIAR PARA HORA DE VENEZUELA ---
 def obtener_hora_vzla():
+    # 1. Obtenemos la hora con la zona horaria de Caracas
     tz = pytz.timezone('America/Caracas')
-    return datetime.now(tz)
+    hora_vzla = datetime.now(tz)
+    
+    # 2. La convertimos en una "hora ingenua" (naive)
+    # Esto quita el rastro de UTC-4 y obliga a la DB a guardar el número tal cual
+    return hora_vzla.replace(tzinfo=None)
 
 # --- TABLA 1: USUARIOS ---
 class Usuario(UserMixin, db.Model):

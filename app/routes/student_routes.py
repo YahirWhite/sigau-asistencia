@@ -17,7 +17,7 @@ def escaner():
 
     return render_template('student/escaner.html', inscripciones_abiertas=inscripciones_abiertas)
 
-# --- 2. PROCESAR QR (Sincronizado con zona horaria local) ---
+# --- 2. PROCESAR QR (Sincronizado y normalizado) ---
 @student_bp.route('/procesar_qr', methods=['POST'])
 @login_required
 def procesar_qr():
@@ -44,18 +44,16 @@ def procesar_qr():
         flash(f'⛔ ACCESO DENEGADO: Tú eres de la Sección "{sec_alumno}" y esta clase es de la Sección "{sec_materia}".', 'danger')
         return redirect(url_for('student.escaner'))
 
-    # --- LÓGICA DE HORA UNIFICADA ---
+    # --- LÓGICA DE HORA NORMALIZADA ---
     
-    # Obtenemos la hora real de Venezuela (Ya viene correcta por el TZ del init)
+    # IMPORTANTE: obtener_hora_vzla() debe devolver .replace(tzinfo=None)
+    # para que la DB no le sume horas al creer que es UTC.
     ahora_vzla = obtener_hora_vzla()
     
-    # Eliminamos la resta manual de 4 horas para evitar discrepancias
-    hora_para_db = ahora_vzla 
-    
-    # Fecha en texto para la validación de duplicados
+    # Fecha en texto para comparar hoy (YYYY-MM-DD)
     hoy_str = ahora_vzla.strftime('%Y-%m-%d')
 
-    # Verificar si ya marcó hoy
+    # Verificar si ya marcó hoy usando to_char en la DB
     existe = Asistencia.query.filter(
         Asistencia.estudiante_id == current_user.id,
         Asistencia.materia_id == materia.id,
@@ -68,13 +66,14 @@ def procesar_qr():
         nueva_asistencia = Asistencia(
             estudiante_id=current_user.id,
             materia_id=materia.id,
-            fecha=hora_para_db,  # Se guarda la hora real (Ej: 11:26 AM)
+            fecha=ahora_vzla,  # Se guarda el valor "limpio" (ej. 11:52)
             estado='Presente',
             metodo='qr'
         )
         db.session.add(nueva_asistencia)
         db.session.commit()
         
+        # El flash mostrará exactamente la misma hora que se guardó
         flash(f'✅ ¡Éxito! Asistencia registrada en {materia.nombre} ({ahora_vzla.strftime("%I:%M %p")})', 'success')
 
     return redirect(url_for('student.escaner'))
