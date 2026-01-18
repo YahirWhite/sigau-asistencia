@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, url_for, request
 from config import Config
 from .models import db, Usuario
 from flask_login import LoginManager
@@ -22,34 +22,37 @@ def create_app():
     migrate = Migrate(app, db)
     csrf.init_app(app)
 
-    # --- CONFIGURACIÓN CSP PARA ELIMINAR BANDERAS NARANJAS ---
+    # --- CSP MEJORADO PARA ELIMINAR TODAS LAS BANDERAS ---
     csp = {
         'default-src': "'self'",
         'script-src': [
             "'self'",
-            # Sin unsafe-eval: Ahora usamos jsQR localmente
+            # Sin unsafe-eval para máxima seguridad
         ],
         'style-src': [
             "'self'",
-            "'unsafe-inline'", # Necesario para Tailwind y animaciones dinámicas
-            "https://cdnjs.cloudflare.com" # Si usas FontAwesome externo
+            "'unsafe-inline'", # Necesario para Tailwind
+            "https://cdnjs.cloudflare.com"
         ],
         'img-src': ["'self'", "data:", "blob:"],
         'font-src': ["'self'", "https://cdnjs.cloudflare.com", "data:"],
         'connect-src': "'self'",
         'media-src': ["'self'", "blob:", "data:"],
-        # DIRECTIVAS CRÍTICAS PARA ZAP:
-        'object-src': "'none'",      # Bloquea inyección de plugins (Flash, etc.)
-        'frame-ancestors': "'none'"  # Evita ataques de Clickjacking (Iframe)
+        'object-src': "'none'",      
+        'frame-ancestors': "'none'", 
+        # NUEVAS DIRECTIVAS PARA ZAP:
+        'base-uri': "'self'",
+        'form-action': "'self'"
     }
 
-    # Aplicamos Talisman con HSTS activado
     Talisman(app, 
              force_https=True, 
              frame_options='DENY',
              content_security_policy=csp,
              content_security_policy_nonce_in=['script-src'],
-             strict_transport_security=True # Indica al navegador que use siempre HTTPS
+             strict_transport_security=True,
+             session_cookie_secure=True,
+             session_cookie_http_only=True
     )
              
     app.config.update(
@@ -57,6 +60,16 @@ def create_app():
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax',
     )
+
+    # --- CABECERAS PARA ELIMINAR BANDERAS DE CACHÉ Y DIVULGACIÓN ---
+    @app.after_request
+    def add_security_headers(response):
+        # Elimina "Directivas de Control de Caché" (Bandera Azul)
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        # Elimina "Divulgación de Información" (Oculta el servidor)
+        response.headers["Server"] = "SIGAU-PRO"
+        return response
 
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
