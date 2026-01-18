@@ -3,14 +3,14 @@
 {% block content %}
 <div class="max-w-4xl mx-auto pb-20">
     
-    <div class="bg-white p-6 rounded-b-3xl shadow-sm border-b border-gray-200 mb-6 flex justify-between items-center">
+    <div class="bg-white dark:bg-slate-800 p-6 rounded-b-3xl shadow-sm border-b border-gray-200 dark:border-slate-700 mb-6 flex justify-between items-center transition-colors duration-300">
         <div class="flex items-center gap-4">
-            <a href="{{ url_for('admin.dashboard') }}" class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center hover:bg-azul-inst hover:text-white transition-colors">
+            <a href="{{ url_for('admin.dashboard') }}" class="w-10 h-10 rounded-full bg-gray-100 dark:bg-slate-700 flex items-center justify-center hover:bg-azul-inst hover:text-white transition-colors">
                 <i class="fas fa-arrow-left"></i>
             </a>
             <div>
-                <h1 class="text-2xl font-bold text-azul-inst">Solicitudes Pendientes</h1>
-                <p class="text-gray-500 text-sm">Control de acceso para docentes.</p>
+                <h1 class="text-2xl font-bold text-azul-inst dark:text-white">Solicitudes Pendientes</h1>
+                <p class="text-gray-500 dark:text-slate-400 text-sm">Control de acceso para docentes.</p>
             </div>
         </div>
         
@@ -21,15 +21,15 @@
 
     <div class="px-4 space-y-4">
         {% for p in pendientes %}
-        <div class="bg-white p-5 rounded-2xl shadow-sm border border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4 animate-bounce-in">
+        <div class="bg-white dark:bg-slate-800 p-5 rounded-2xl shadow-sm border border-gray-200 dark:border-slate-700 flex flex-col md:flex-row justify-between items-center gap-4 animate-bounce-in transition-colors duration-300">
             
             <div class="flex items-center gap-4 w-full">
                 <div class="w-12 h-12 rounded-full bg-azul-inst text-white flex items-center justify-center font-bold text-xl uppercase">
                     {{ p.nombre[0] }}
                 </div>
                 <div>
-                    <h3 class="font-bold text-gray-800 text-lg leading-tight">{{ p.nombre }}</h3>
-                    <div class="flex flex-wrap gap-x-4 text-sm text-gray-500 mt-1">
+                    <h3 class="font-bold text-gray-800 dark:text-white text-lg leading-tight">{{ p.nombre }}</h3>
+                    <div class="flex flex-wrap gap-x-4 text-sm text-gray-500 dark:text-slate-400 mt-1">
                         <span class="flex items-center gap-1">
                             <i class="fas fa-id-card text-gray-400"></i> {{ p.cedula }}
                         </span>
@@ -40,25 +40,31 @@
                 </div>
             </div>
 
-            <div class="flex gap-3 w-full md:w-auto min-w-[200px]">
-                <a href="{{ url_for('admin.rechazar_docente', user_id=p.id) }}" 
-                   onclick="return confirm('¿Seguro que deseas rechazar a este usuario?')"
-                   class="flex-1 px-4 py-2 rounded-xl border border-red-200 text-red-500 font-bold hover:bg-red-50 transition-colors text-center text-sm flex items-center justify-center">
-                    Rechazar
-                </a>
+            <div class="flex gap-3 w-full md:w-auto min-w-[240px]">
+                <form action="{{ url_for('admin.rechazar_docente', user_id=p.id) }}" method="POST" class="flex-1">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" 
+                            onclick="return confirm('¿Seguro que deseas rechazar a este usuario?')"
+                            class="w-full px-4 py-2 rounded-xl border border-red-200 text-red-500 font-bold hover:bg-red-50 transition-colors text-sm flex items-center justify-center">
+                        Rechazar
+                    </button>
+                </form>
                 
-                <a href="{{ url_for('admin.aprobar_docente', user_id=p.id) }}" 
-                   class="flex-1 px-4 py-2 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600 shadow-lg shadow-green-200 transition-colors text-center text-sm flex items-center justify-center">
-                    <i class="fas fa-check mr-2"></i> Aprobar
-                </a>
+                <form action="{{ url_for('admin.aprobar_docente', user_id=p.id) }}" method="POST" class="flex-1">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" 
+                            class="w-full px-4 py-2 rounded-xl bg-green-500 text-white font-bold hover:bg-green-600 shadow-lg shadow-green-200 transition-colors text-sm flex items-center justify-center">
+                        <i class="fas fa-check mr-2"></i> Aprobar
+                    </button>
+                </form>
             </div>
         </div>
         {% else %}
         <div class="text-center py-16 opacity-60">
-            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300 text-4xl">
+            <div class="w-20 h-20 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-300 text-4xl">
                 <i class="fas fa-check-circle"></i>
             </div>
-            <p class="text-gray-500 font-medium text-lg">No hay solicitudes pendientes</p>
+            <p class="text-gray-500 dark:text-slate-400 font-medium text-lg">No hay solicitudes pendientes</p>
             <p class="text-sm text-gray-400">Todo el personal está verificado.</p>
         </div>
         {% endfor %}

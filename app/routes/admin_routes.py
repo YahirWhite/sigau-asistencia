@@ -36,12 +36,12 @@ def dashboard():
             db.session.commit()
 
     return render_template('admin/dashboard.html', 
-                           materias=mis_materias, 
-                           pendientes_count=pendientes_count,
-                           config=config)
+                            materias=mis_materias, 
+                            pendientes_count=pendientes_count,
+                            config=config)
 
-# --- 2. INICIAR CLASE (Generar Token) ---
-@admin_bp.route('/iniciar_clase/<int:materia_id>')
+# --- 2. INICIAR CLASE (Modificado para POST) ---
+@admin_bp.route('/iniciar_clase/<int:materia_id>', methods=['GET', 'POST'])
 @login_required
 def iniciar_clase(materia_id):
     materia = Materia.query.get_or_404(materia_id)
@@ -57,7 +57,7 @@ def iniciar_clase(materia_id):
     flash(f'¡Clase iniciada! Token: {token_nuevo}', 'success')
     return redirect(url_for('admin.ver_qr', materia_id=materia.id))
 
-# --- 3. VER QR (Pantalla Grande - Sincronizado con to_char) ---
+# --- 3. VER QR (Pantalla Grande) ---
 @admin_bp.route('/ver_qr/<int:materia_id>')
 @login_required
 def ver_qr(materia_id):
@@ -66,7 +66,6 @@ def ver_qr(materia_id):
     if not materia.token_activo:
         return redirect(url_for('admin.dashboard'))
 
-    # Generar QR
     qr = qrcode.QRCode(version=1, box_size=10, border=5)
     qr.add_data(materia.token_activo)
     qr.make(fit=True)
@@ -75,8 +74,6 @@ def ver_qr(materia_id):
     img.save(buffer, format="PNG")
     img_str = base64.b64encode(buffer.getvalue()).decode()
 
-    # Obtener lista de asistentes de HOY usando to_char
-    # Como ahora guardamos compensado, el to_char encontrará la fecha correcta
     hoy_str = obtener_hora_vzla().strftime('%Y-%m-%d')
     asistencias = Asistencia.query.filter(
         Asistencia.materia_id == materia.id,
@@ -84,12 +81,12 @@ def ver_qr(materia_id):
     ).order_by(Asistencia.fecha.desc()).all()
 
     return render_template('admin/qr_view.html', 
-                           materia=materia, 
-                           qr_image=img_str,
-                           asistencias=asistencias)
+                            materia=materia, 
+                            qr_image=img_str,
+                            asistencias=asistencias)
 
-# --- 4. ELIMINAR ASISTENCIA (Seguridad en vivo) ---
-@admin_bp.route('/eliminar_asistencia/<int:asistencia_id>')
+# --- 4. ELIMINAR ASISTENCIA (Modificado para POST) ---
+@admin_bp.route('/eliminar_asistencia/<int:asistencia_id>', methods=['GET', 'POST'])
 @login_required
 def eliminar_asistencia(asistencia_id):
     asistencia = Asistencia.query.get_or_404(asistencia_id)
@@ -102,10 +99,10 @@ def eliminar_asistencia(asistencia_id):
     db.session.delete(asistencia)
     db.session.commit()
     
-    flash('Asistencia eliminada manualmente.', 'warning')
+    flash('Asistencia eliminada.', 'warning')
     return redirect(url_for('admin.ver_qr', materia_id=materia.id))
 
-# --- 5. HISTORIAL INTELIGENTE (Lectura Directa de Datos Compensados) ---
+# --- 5. HISTORIAL ---
 @admin_bp.route('/historial')
 @login_required
 def historial():
@@ -133,9 +130,6 @@ def historial():
 
     asistencias = query.order_by(Asistencia.fecha.desc()).all()
 
-    # NOTA: No aplicamos .astimezone ni localize aquí porque la hora 
-    # ya viene "corregida" desde la base de datos gracias a la resta de student_routes.
-    
     if current_user.rol == 'admin':
         todas_las_materias = Materia.query.all()
         secciones = db.session.query(Materia.codigo_seccion).distinct().all()
@@ -147,23 +141,23 @@ def historial():
     lista_secciones = [s[0] for s in secciones if s[0]]
 
     return render_template('admin/historial.html', 
-                           asistencias=asistencias, 
-                           materias=todas_las_materias,
-                           secciones=lista_secciones)
+                            asistencias=asistencias, 
+                            materias=todas_las_materias,
+                            secciones=lista_secciones)
 
-# --- 6. VER LISTA DE PENDIENTES ---
+# --- 6. APROBACIONES ---
 @admin_bp.route('/aprobaciones')
 @login_required
 def aprobaciones():
     if current_user.rol != 'admin':
-        flash('Acceso denegado. Solo para Administradores.', 'danger')
+        flash('Acceso denegado.', 'danger')
         return redirect(url_for('admin.dashboard'))
 
     pendientes = Usuario.query.filter_by(rol='docente', aprobado=False).all()
     return render_template('admin/aprobaciones.html', pendientes=pendientes)
 
-# --- 7. APROBAR DOCENTE ---
-@admin_bp.route('/aprobar_docente/<int:user_id>')
+# --- 7. APROBAR DOCENTE (Modificado para POST) ---
+@admin_bp.route('/aprobar_docente/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def aprobar_docente(user_id):
     if current_user.rol != 'admin':
@@ -173,11 +167,11 @@ def aprobar_docente(user_id):
     usuario.aprobado = True 
     db.session.commit()
     
-    flash(f'✅ El docente {usuario.nombre} ha sido aprobado.', 'success')
+    flash(f'✅ Docente {usuario.nombre} aprobado.', 'success')
     return redirect(url_for('admin.aprobaciones'))
 
-# --- 8. RECHAZAR DOCENTE ---
-@admin_bp.route('/rechazar_docente/<int:user_id>')
+# --- 8. RECHAZAR DOCENTE (Modificado para POST) ---
+@admin_bp.route('/rechazar_docente/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def rechazar_docente(user_id):
     if current_user.rol != 'admin':
@@ -187,7 +181,7 @@ def rechazar_docente(user_id):
     db.session.delete(usuario)
     db.session.commit()
     
-    flash(f'🗑️ Solicitud de {usuario.nombre} rechazada.', 'warning')
+    flash(f'🗑️ Solicitud rechazada.', 'warning')
     return redirect(url_for('admin.aprobaciones'))
 
 # --- 9. ASIGNAR MATERIA ---
@@ -202,9 +196,7 @@ def asignar_materia():
         catalogo_id = request.form.get('catalogo_id')
         seccion = request.form.get('seccion')
 
-        if not docente_id or not catalogo_id or not seccion:
-            flash('Todos los campos son obligatorios.', 'danger')
-        else:
+        if docente_id and catalogo_id and seccion:
             item_catalogo = CatalogoMaterias.query.get(catalogo_id)
             nueva_materia = Materia(
                 nombre=item_catalogo.nombre,
@@ -213,14 +205,14 @@ def asignar_materia():
             )
             db.session.add(nueva_materia)
             db.session.commit()
-            flash(f'Asignatura asignada correctamente.', 'success')
+            flash('Asignatura asignada correctamente.', 'success')
             return redirect(url_for('admin.dashboard'))
 
     docentes = Usuario.query.filter_by(rol='docente', aprobado=True).all()
     catalogo = CatalogoMaterias.query.order_by(CatalogoMaterias.nombre).all()
     return render_template('admin/asignar_materia.html', docentes=docentes, catalogo=catalogo)
 
-# --- 10. EXPORTAR A EXCEL (CSV Limpio) ---
+# --- 10. REPORTES ---
 @admin_bp.route('/descargar_reporte')
 @login_required
 def descargar_reporte():
@@ -229,20 +221,9 @@ def descargar_reporte():
     cw = csv.writer(si, delimiter=';')
     cw.writerow(['Fecha', 'Hora', 'Asignatura', 'Sección', 'Docente', 'Estudiante', 'Cédula', 'Sección Alumno', 'Estado'])
     
-    materia_id = request.args.get('materia_id')
-    fecha_filtro = request.args.get('fecha')
-    seccion_filtro = request.args.get('seccion')
-
-    query = Asistencia.query.join(Materia)
-    if current_user.rol == 'docente': query = query.filter(Materia.docente_id == current_user.id)
-    if materia_id: query = query.filter(Asistencia.materia_id == materia_id)
-    if fecha_filtro: query = query.filter(db.func.to_char(Asistencia.fecha, 'YYYY-MM-DD') == fecha_filtro)
-    if seccion_filtro: query = query.filter(Materia.codigo_seccion == seccion_filtro)
-
-    registros = query.order_by(Asistencia.fecha.desc()).all()
+    registros = Asistencia.query.join(Materia).order_by(Asistencia.fecha.desc()).all()
 
     for reg in registros:
-        # Usamos la fecha tal cual viene, porque ya está compensada en el origen
         cw.writerow([
             reg.fecha.strftime('%d/%m/%Y'), 
             reg.fecha.strftime('%H:%M'),
@@ -268,45 +249,49 @@ def gestionar_catalogo():
     if request.method == 'POST':
         nombre = request.form.get('nombre_materia')
         if nombre and not CatalogoMaterias.query.filter_by(nombre=nombre).first():
-            db.session.add(CatalogoMaterias(nombre=nombre)); db.session.commit()
+            db.session.add(CatalogoMaterias(nombre=nombre))
+            db.session.commit()
             flash('Materia agregada.', 'success')
     
     materias = CatalogoMaterias.query.order_by(CatalogoMaterias.nombre).all()
     return render_template('admin/gestionar_catalogo.html', materias=materias)
 
-# --- 12. ELIMINAR CATÁLOGO ---
-@admin_bp.route('/eliminar_catalogo/<int:id>')
+# --- 12. ELIMINAR CATÁLOGO (Modificado para POST) ---
+@admin_bp.route('/eliminar_catalogo/<int:id>', methods=['GET', 'POST'])
 @login_required
 def eliminar_catalogo(id):
     if current_user.rol != 'admin': return redirect(url_for('admin.dashboard'))
     item = CatalogoMaterias.query.get_or_404(id)
-    db.session.delete(item); db.session.commit()
+    db.session.delete(item)
+    db.session.commit()
     flash('Materia eliminada.', 'info')
     return redirect(url_for('admin.gestionar_catalogo'))
 
-# --- 13. INTERRUPTOR MAESTRO ---
-@admin_bp.route('/toggle_edicion')
+# --- 13. INTERRUPTOR MAESTRO (Modificado para POST) ---
+@admin_bp.route('/toggle_edicion', methods=['GET', 'POST'])
 @login_required
 def toggle_edicion():
     if current_user.rol != 'admin': return redirect(url_for('auth.login'))
     config = Configuracion.query.get(1) or Configuracion(id=1, permitir_edicion=False)
     config.permitir_edicion = not config.permitir_edicion
-    db.session.add(config); db.session.commit()
+    db.session.add(config)
+    db.session.commit()
     estado = "ABIERTAS" if config.permitir_edicion else "CERRADAS"
     flash(f'Inscripciones {estado}', 'success')
-    return redirect(url_for('admin.dashboard', _t=datetime.now().timestamp()))
+    return redirect(url_for('admin.dashboard'))
 
-# --- 14. CERRAR CLASE ---
-@admin_bp.route('/cerrar_clase/<int:materia_id>')
+# --- 14. CERRAR CLASE (Modificado para POST) ---
+@admin_bp.route('/cerrar_clase/<int:materia_id>', methods=['GET', 'POST'])
 @login_required
 def cerrar_clase(materia_id):
     materia = Materia.query.get_or_404(materia_id)
     if materia.docente_id == current_user.id:
-        materia.token_activo = None; db.session.commit()
+        materia.token_activo = None
+        db.session.commit()
         flash('Clase cerrada.', 'info')
-    return redirect(url_for('admin.dashboard'))   
+    return redirect(url_for('admin.dashboard')) 
 
-# --- 15. SOLICITUDES DE CLAVE ---
+# --- 15. SOLICITUDES CLAVE ---
 @admin_bp.route('/solicitudes_clave')
 @login_required
 def solicitudes_clave():
@@ -314,37 +299,39 @@ def solicitudes_clave():
     solicitudes = SolicitudClave.query.order_by(SolicitudClave.fecha_solicitud.desc()).all()
     return render_template('admin/solicitudes_clave.html', solicitudes=solicitudes)
 
-# --- 16. APROBAR/RECHAZAR CLAVE ---
-@admin_bp.route('/aprobar_clave/<int:id>')
+# --- 16. APROBAR/RECHAZAR CLAVE (Modificado para POST) ---
+@admin_bp.route('/aprobar_clave/<int:id>', methods=['GET', 'POST'])
 @login_required
 def aprobar_clave(id):
     if current_user.rol != 'admin': return redirect(url_for('admin.dashboard'))
     solicitud = SolicitudClave.query.get_or_404(id)
     solicitud.usuario.password_hash = solicitud.nueva_clave_hash
-    db.session.delete(solicitud); db.session.commit()
+    db.session.delete(solicitud)
+    db.session.commit()
     flash('Contraseña actualizada.', 'success')
     return redirect(url_for('admin.solicitudes_clave'))
 
-@admin_bp.route('/rechazar_clave/<int:id>')
+@admin_bp.route('/rechazar_clave/<int:id>', methods=['GET', 'POST'])
 @login_required
 def rechazar_clave(id):
     if current_user.rol != 'admin': return redirect(url_for('admin.dashboard'))
     solicitud = SolicitudClave.query.get_or_404(id)
-    db.session.delete(solicitud); db.session.commit()
+    db.session.delete(solicitud)
+    db.session.commit()
     flash('Solicitud rechazada.', 'warning')
     return redirect(url_for('admin.solicitudes_clave'))
 
-# --- 17. EXPORTAR INASISTENCIAS (Tepuy - Sincronizado) ---
+# --- 17. EXPORTAR INASISTENCIAS ---
 @admin_bp.route('/exportar_inasistencias/<int:materia_id>')
 @login_required
 def exportar_inasistencias(materia_id):
     materia = Materia.query.get_or_404(materia_id)
     if current_user.rol != 'admin' and materia.docente_id != current_user.id:
-        flash('No autorizado', 'danger'); return redirect(url_for('admin.dashboard'))
+        flash('No autorizado', 'danger')
+        return redirect(url_for('admin.dashboard'))
 
     estudiantes = Usuario.query.filter_by(rol='estudiante', seccion_estudiante=materia.codigo_seccion).all()
-    hoy_vzla = obtener_hora_vzla()
-    hoy_str = hoy_vzla.strftime('%Y-%m-%d')
+    hoy_str = obtener_hora_vzla().strftime('%Y-%m-%d')
 
     asistencias_hoy = Asistencia.query.filter(
         Asistencia.materia_id == materia.id,

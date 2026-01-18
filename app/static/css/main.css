@@ -2,6 +2,7 @@
 :root {
     --azul-inst: #003366;
     --azul-sec: #0055A4;
+    --azul-brillante: #3b82f6; 
     --amarillo: #FFD700;
     --amarillo-dark: #B8860B;
     --gris-fondo: #F3F4F6;
@@ -86,3 +87,43 @@ input:not([type="radio"]):not([type="checkbox"]), select, textarea {
 
 /* Fix para el logo circular desbordado */
 .rounded-full { border-radius: 9999px !important; }
+
+/* --- 7. LÓGICA DE BOTONES ROL (COLOR SÓLIDO) --- */
+.rol-card {
+    transition: all 0.2s ease-in-out !important;
+    border: 2px solid #e2e8f0 !important;
+    background-color: #f9fafb !important;
+    color: #9ca3af !important;
+    cursor: pointer;
+}
+
+.dark .rol-card {
+    border-color: #334155 !important;
+    background-color: #0f172a !important;
+    color: #64748b !important;
+}
+
+/* ESTADO SELECCIONADO (ENCENDIDO SÓLIDO) */
+input[type="radio"]:checked + .rol-card {
+    background-color: var(--azul-sec) !important; /* Azul sólido claro */
+    color: #ffffff !important;
+    border-color: var(--azul-sec) !important;
+    box-shadow: none !important; /* Quitamos neón */
+    transform: scale(1.01);
+}
+
+.dark input[type="radio"]:checked + .rol-card {
+    background-color: var(--azul-brillante) !important; /* Azul sólido vibrante en dark */
+    border-color: var(--azul-brillante) !important;
+    box-shadow: none !important;
+}
+
+/* Ocultar las secciones dinámicas suavemente */
+.campos-hidden {
+    max-height: 0 !important;
+    opacity: 0 !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    pointer-events: none;
+}

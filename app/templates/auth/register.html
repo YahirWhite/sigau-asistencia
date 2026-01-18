@@ -2,35 +2,33 @@
 
 {% block content %}
 <div class="min-h-screen flex items-center justify-center p-4">
-    <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl w-full max-w-md border border-gray-100 dark:border-slate-700 relative overflow-hidden transition-colors duration-300">
+    <div class="bg-white dark:bg-slate-800 p-8 rounded-3xl shadow-xl w-full max-w-md border border-gray-100 dark:border-slate-700 relative overflow-hidden transition-all duration-300 animate-bounce-in">
         
         <div class="text-center mb-6">
             <div class="w-20 h-20 bg-white rounded-full mx-auto mb-3 flex items-center justify-center shadow-md p-1 border border-gray-100 relative overflow-hidden">
-                <img src="{{ url_for('static', filename='logo.png') }}" 
-                     alt="Logo" 
-                     class="w-full h-full object-cover rounded-full"> 
+                <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" class="w-full h-full object-cover rounded-full"> 
             </div>
             <h1 class="text-2xl font-bold text-azul-inst dark:text-white">Crear Cuenta</h1>
             <p class="text-gray-400 dark:text-slate-400 text-sm">Únete a la comunidad universitaria</p>
         </div>
 
         <form method="POST" class="space-y-4">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             
             <div>
                 <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Nombre Completo</label>
                 <input type="text" name="nombre" required class="input-std" placeholder="Tu nombre">
             </div>
 
-            <div>
-                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Cédula</label>
-                <input type="text" id="cedulaInput" name="cedula" required pattern="\d{6,9}" title="Debe tener entre 6 y 9 dígitos"
-                       class="input-std font-mono" placeholder="Ej. 28123456">
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Teléfono</label>
-                <input type="tel" id="telefonoInput" name="telefono" required pattern="\d{11}" title="Debe tener exactamente 11 dígitos"
-                       class="input-std font-mono" placeholder="04125724190">
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Cédula</label>
+                    <input type="text" id="cedulaInput" name="cedula" required class="input-std font-mono" placeholder="Min. 6 - Max. 8">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Teléfono</label>
+                    <input type="tel" id="telefonoInput" name="telefono" required class="input-std font-mono" placeholder="11 dígitos">
+                </div>
             </div>
 
             <div>
@@ -39,36 +37,43 @@
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Soy...</label>
-                <div class="grid grid-cols-2 gap-3">
+                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">¿Quién eres?</label>
+                <div class="grid grid-cols-2 gap-4">
                     <label class="cursor-pointer">
-                        <input type="radio" name="rol" value="estudiante" checked class="peer sr-only">
-                        <div class="rol-card border-azul-inst text-azul-inst dark:border-blue-500 dark:text-blue-300 bg-azul-inst/5">Estudiante</div>
+                        <input type="radio" name="rol" value="estudiante" checked class="sr-only">
+                        <div class="rol-card p-3 rounded-xl text-center font-bold">
+                            Estudiante
+                        </div>
                     </label>
+
                     <label class="cursor-pointer">
-                        <input type="radio" name="rol" value="docente" class="peer sr-only">
-                        <div class="rol-card border-gray-200 dark:border-slate-600 text-gray-400 dark:text-slate-500">Docente</div>
+                        <input type="radio" name="rol" value="docente" class="sr-only">
+                        <div class="rol-card p-3 rounded-xl text-center font-bold">
+                            Docente
+                        </div>
                     </label>
                 </div>
             </div>
 
-            <div id="camposEstudiante" class="grid grid-cols-2 gap-3 bg-gray-50 dark:bg-slate-900/50 p-3 rounded-xl border border-gray-100 dark:border-slate-700">
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 dark:text-slate-300 uppercase mb-1">Semestre</label>
-                    <select name="semestre" class="input-std text-sm">
-                        <option value="CAIU">CAIU</option>
-                        {% for i in range(1, 9) %}
-                        <option value="{{ i }}">Semestre {{ i }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-500 dark:text-slate-300 uppercase mb-1">Sección</label>
-                    <select name="seccion_estudiante" class="input-std text-sm">
-                        {% for i in range(1, 25) %}
-                        <option value="{{ i }}">{{ i }}</option>
-                        {% endfor %}
-                    </select>
+            <div id="camposEstudiante" class="transition-all duration-500 ease-in-out overflow-hidden max-h-[200px] opacity-100">
+                <div class="grid grid-cols-2 gap-3 bg-gray-50 dark:bg-slate-900/40 p-4 rounded-2xl border border-gray-100 dark:border-slate-700 mt-2">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 dark:text-slate-300 uppercase mb-1">Semestre</label>
+                        <select name="semestre" class="input-std text-sm">
+                            <option value="CAIU">CAIU</option>
+                            {% for i in range(1, 9) %}
+                            <option value="{{ i }}">Semestre {{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 dark:text-slate-300 uppercase mb-1">Sección</label>
+                        <select name="seccion_estudiante" class="input-std text-sm">
+                            {% for i in range(1, 25) %}
+                            <option value="{{ i }}">{{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -77,89 +82,58 @@
                 <input type="password" name="password" required class="input-std" placeholder="••••••••">
             </div>
 
-            <button type="submit" class="w-full bg-azul-inst text-white font-bold py-3 rounded-xl shadow-lg hover:bg-opacity-90 transition-all active:scale-95">
+            <button type="submit" class="w-full bg-azul-inst hover:bg-azul-sec text-white font-bold py-4 rounded-2xl shadow-lg transition-all active:scale-95 mt-4">
                 Registrarse
             </button>
         </form>
-        
-        <div class="mt-6 text-center text-sm">
-            <a href="{{ url_for('auth.login') }}" class="text-azul-inst dark:text-blue-400 font-bold hover:underline">Volver al Login</a>
+
+        <div class="mt-6 text-center">
+            <a href="{{ url_for('auth.login') }}" class="text-sm font-bold text-azul-inst dark:text-blue-400 hover:underline flex items-center justify-center gap-2">
+                <i class="fas fa-arrow-left text-xs"></i>
+                Volver al Login
+            </a>
         </div>
     </div>
 </div>
 
 <style>
-    .input-std { 
-        width: 100%; 
-        border-radius: 0.75rem; 
-        padding: 0.75rem 1rem; 
-        outline: none; 
-        transition: all;
-        background-color: #ffffff !important;
-        color: #111827 !important;
-        -webkit-text-fill-color: #111827 !important;
+    .input-std {
+        width: 100%; border-radius: 0.75rem !important; padding: 0.75rem 1rem !important;
+        border: 1px solid #d1d5db !important; background-color: #ffffff !important;
+        color: #1f2937 !important; transition: all 0.3s ease;
     }
-    
     html.dark .input-std {
-        background-color: #1e293b !important; 
-        color: #ffffff !important;           
-        -webkit-text-fill-color: #ffffff !important;
-        border-color: #475569 !important;
-    }
-
-    .input-std:focus { 
-        border-color: #0055A4; 
-        box-shadow: 0 0 0 2px rgba(0, 85, 164, 0.1); 
-    }
-
-    .rol-card { 
-        text-align: center; 
-        padding: 0.75rem; 
-        border-radius: 0.75rem; 
-        border-width: 2px; 
-        font-weight: bold; 
-        transition: all; 
-    }
-
-    input:checked + .rol-card { 
-        border-color: #003366; 
-        background: #003366; 
-        color: white !important; 
+        background-color: #0f172a !important; border-color: #334155 !important;
+        color: #ffffff !important; -webkit-text-fill-color: #ffffff !important;
     }
 </style>
 
 <script nonce="{{ csp_nonce() }}">
     function toggleCampos(esEstudiante) {
-        const div = document.getElementById('camposEstudiante');
+        const container = document.getElementById('camposEstudiante');
         if (esEstudiante) {
-            div.classList.remove('hidden');
-            div.querySelectorAll('select').forEach(s => s.disabled = false);
+            container.classList.remove('campos-hidden');
+            container.querySelectorAll('select').forEach(s => s.disabled = false);
         } else {
-            div.classList.add('hidden');
-            div.querySelectorAll('select').forEach(s => s.disabled = true);
+            container.classList.add('campos-hidden');
+            container.querySelectorAll('select').forEach(s => s.disabled = true);
         }
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-        // Manejador para el cambio de Rol (Estudiante/Docente)
         document.querySelectorAll('input[name="rol"]').forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                toggleCampos(e.target.value === 'estudiante');
-            });
+            radio.addEventListener('change', (e) => toggleCampos(e.target.value === 'estudiante'));
         });
 
-        // Manejador para limpiar inputs de solo números (Cédula y Teléfono)
-        const formatNumbers = (e) => {
-            e.target.value = e.target.value.replace(/[^0-9]/g, '');
-            if (e.target.id === 'cedulaInput') e.target.value = e.target.value.slice(0, 9);
-            if (e.target.id === 'telefonoInput') e.target.value = e.target.value.slice(0, 11);
-        };
-
         const cedula = document.getElementById('cedulaInput');
-        const tlf = document.getElementById('telefonoInput');
-        
-        if(cedula) cedula.addEventListener('input', formatNumbers);
-        if(tlf) tlf.addEventListener('input', formatNumbers);
+        const telefono = document.getElementById('telefonoInput');
+
+        cedula.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 8);
+        });
+        telefono.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 11);
+        });
     });
 </script>
 {% endblock %}

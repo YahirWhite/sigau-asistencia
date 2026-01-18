@@ -4,22 +4,23 @@
 <div class="max-w-md mx-auto">
     
     <div class="flex items-center gap-4 mb-6 px-4 pt-6">
-        <a href="{{ url_for('admin.dashboard') }}" class="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-gray-600 hover:text-azul-inst">
+        <a href="{{ url_for('admin.dashboard') }}" class="w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-sm flex items-center justify-center text-gray-600 dark:text-slate-300 hover:text-azul-inst transition-all">
             <i class="fas fa-arrow-left"></i>
         </a>
         <div>
-            <h1 class="text-2xl font-bold text-azul-inst">Asignar Carga</h1>
-            <p class="text-sm text-gray-500">Control de Estudios</p>
+            <h1 class="text-2xl font-bold text-azul-inst dark:text-white">Asignar Carga</h1>
+            <p class="text-sm text-gray-500 dark:text-slate-400">Control de Estudios</p>
         </div>
     </div>
 
-    <div class="bg-white rounded-3xl shadow-lg border border-gray-100 p-6 mx-4">
+    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-lg border border-gray-100 dark:border-slate-700 p-6 mx-4 transition-colors duration-300">
         <form method="POST" class="space-y-6">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">Docente</label>
+                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">Docente</label>
                 <div class="relative">
-                    <select name="docente_id" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-azul-sec/50 appearance-none">
+                    <select name="docente_id" required class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 dark:text-white rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-azul-sec/50 appearance-none transition-all">
                         <option value="" disabled selected>Seleccionar...</option>
                         {% for docente in docentes %}
                             <option value="{{ docente.id }}">{{ docente.nombre }}</option>
@@ -30,9 +31,9 @@
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">Asignatura</label>
+                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">Asignatura</label>
                 <div class="relative">
-                    <select name="catalogo_id" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-azul-sec/50 appearance-none">
+                    <select name="catalogo_id" required class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 dark:text-white rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-azul-sec/50 appearance-none transition-all">
                         <option value="" disabled selected>Seleccionar materia...</option>
                         {% for item in catalogo %}
                             <option value="{{ item.id }}">{{ item.nombre }}</option>
@@ -43,36 +44,35 @@
                     <i class="fas fa-chevron-down absolute right-4 top-4 text-gray-400 text-xs pointer-events-none"></i>
                 </div>
                 <div class="text-right mt-1">
-                    <a href="{{ url_for('admin.gestionar_catalogo') }}" class="text-[10px] text-azul-inst font-bold hover:underline">
+                    <a href="{{ url_for('admin.gestionar_catalogo') }}" class="text-[10px] text-azul-inst dark:text-blue-400 font-bold hover:underline">
                         + Crear nueva materia
                     </a>
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase mb-2 ml-1">Sección</label>
+                <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-2 ml-1">Sección</label>
                 <div class="relative">
-                    <select name="seccion" required class="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-azul-sec/50 appearance-none font-mono">
+                    <select name="seccion" required class="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-600 dark:text-white rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-azul-sec/50 appearance-none font-mono transition-all">
                         <option value="" disabled selected>Seleccionar...</option>
                         
-                        <optgroup label="Regulares (Semestres)">
+                        <optgroup label="Regulares (Semestres)" class="dark:bg-slate-800">
                             {% for i in range(1, 25) %}
                                 <option value="{{ i }}">Sección {{ i }}</option>
                             {% endfor %}
                         </optgroup>
 
-                        <optgroup label="Nuevo Ingreso (CAIU)">
+                        <optgroup label="Nuevo Ingreso (CAIU)" class="dark:bg-slate-800">
                             {% for i in range(1, 25) %}
                                 <option value="CAIU-{{ i }}">Sección CAIU-{{ i }}</option>
                             {% endfor %}
                         </optgroup>
-
                     </select>
                     <i class="fas fa-chevron-down absolute right-4 top-4 text-gray-400 text-xs pointer-events-none"></i>
                 </div>
             </div>
 
-            <button type="submit" class="w-full bg-azul-inst text-white font-bold py-3.5 rounded-xl shadow-lg shadow-azul-inst/30 hover:bg-opacity-90 transition-all mt-4">
+            <button type="submit" class="w-full bg-azul-inst text-white font-bold py-3.5 rounded-xl shadow-lg shadow-azul-inst/30 hover:bg-opacity-90 active:scale-95 transition-all mt-4">
                 Asignar
             </button>
 

@@ -9,6 +9,7 @@ student_bp = Blueprint('student', __name__, url_prefix='/student')
 @student_bp.route('/escaner')
 @login_required
 def escaner():
+    # Bloqueo de seguridad por Rol
     if current_user.rol != 'estudiante':
         return redirect(url_for('admin.dashboard'))
     
@@ -17,10 +18,11 @@ def escaner():
 
     return render_template('student/escaner.html', inscripciones_abiertas=inscripciones_abiertas)
 
-# --- 2. PROCESAR QR (Sincronizado y normalizado) ---
+# --- 2. PROCESAR QR (Sincronizado y normalizado con protección POST) ---
 @student_bp.route('/procesar_qr', methods=['POST'])
 @login_required
 def procesar_qr():
+    # El token CSRF se valida automáticamente aquí antes de ejecutar el código
     token = request.form.get('token')
     
     if not token:
@@ -35,25 +37,21 @@ def procesar_qr():
 
     if not current_user.seccion_estudiante:
         flash('⚠️ Debes configurar tu Sección en el Perfil antes de marcar asistencia.', 'warning')
-        return redirect(url_for('student.escaner'))
+        return redirect(url_for('student.perfil'))
 
+    # Normalización de secciones para evitar errores de tipeo
     sec_alumno = str(current_user.seccion_estudiante).strip().upper()
     sec_materia = str(materia.codigo_seccion).strip().upper()
 
     if sec_alumno != sec_materia:
-        flash(f'⛔ ACCESO DENEGADO: Tú eres de la Sección "{sec_alumno}" y esta clase es de la Sección "{sec_materia}".', 'danger')
+        flash(f'⛔ ACCESO DENEGADO: Tu sección ({sec_alumno}) no coincide con la de esta clase ({sec_materia}).', 'danger')
         return redirect(url_for('student.escaner'))
 
     # --- LÓGICA DE HORA NORMALIZADA ---
-    
-    # IMPORTANTE: obtener_hora_vzla() debe devolver .replace(tzinfo=None)
-    # para que la DB no le sume horas al creer que es UTC.
     ahora_vzla = obtener_hora_vzla()
-    
-    # Fecha en texto para comparar hoy (YYYY-MM-DD)
     hoy_str = ahora_vzla.strftime('%Y-%m-%d')
 
-    # Verificar si ya marcó hoy usando to_char en la DB
+    # Verificación de duplicados para el mismo día y materia
     existe = Asistencia.query.filter(
         Asistencia.estudiante_id == current_user.id,
         Asistencia.materia_id == materia.id,
@@ -66,19 +64,18 @@ def procesar_qr():
         nueva_asistencia = Asistencia(
             estudiante_id=current_user.id,
             materia_id=materia.id,
-            fecha=ahora_vzla,  # Se guarda el valor "limpio" (ej. 11:52)
+            fecha=ahora_vzla,
             estado='Presente',
             metodo='qr'
         )
         db.session.add(nueva_asistencia)
         db.session.commit()
         
-        # El flash mostrará exactamente la misma hora que se guardó
         flash(f'✅ ¡Éxito! Asistencia registrada en {materia.nombre} ({ahora_vzla.strftime("%I:%M %p")})', 'success')
 
     return redirect(url_for('student.escaner'))
 
-# --- 3. PERFIL ---
+# --- 3. PERFIL (Actualización de datos académicos protegida) ---
 @student_bp.route('/perfil', methods=['GET', 'POST'])
 @login_required
 def perfil():
@@ -89,6 +86,7 @@ def perfil():
     permitir = config.permitir_edicion if config else False
 
     if request.method == 'POST':
+        # Validación de "Interruptor Maestro" del Admin
         if not permitir:
             flash('Las inscripciones están cerradas. No puedes modificar datos.', 'danger')
             return redirect(url_for('student.perfil'))
@@ -96,9 +94,10 @@ def perfil():
         nuevo_semestre = request.form.get('semestre')
         nueva_seccion = request.form.get('seccion_estudiante')
 
+        # Lógica de niveles para evitar retrocesos académicos
         niveles = {'CAIU': 0, '1': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8}
-        nivel_actual = niveles.get(current_user.semestre, 0)
-        nivel_nuevo = niveles.get(nuevo_semestre, 0)
+        nivel_actual = niveles.get(str(current_user.semestre), 0)
+        nivel_nuevo = niveles.get(str(nuevo_semestre), 0)
 
         if nivel_nuevo < nivel_actual:
             flash('Error: No puedes retroceder de semestre.', 'danger')
@@ -107,5 +106,6 @@ def perfil():
             current_user.seccion_estudiante = nueva_seccion
             db.session.commit()
             flash('✅ Datos académicos actualizados correctamente.', 'success')
+            return redirect(url_for('student.escaner'))
 
     return render_template('student/perfil.html', permitir=permitir)
