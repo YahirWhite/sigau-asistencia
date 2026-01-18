@@ -18,11 +18,12 @@
             <p class="text-3xl font-mono font-bold text-azul-inst tracking-widest">{{ materia.token_activo }}</p>
         </div>
 
-        <a href="{{ url_for('admin.cerrar_clase', materia_id=materia.id) }}" 
-           onclick="return confirm('¿Seguro que deseas cerrar la asistencia? El código QR dejará de funcionar.');"
-           class="block w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition-colors shadow-lg">
-            <i class="fas fa-lock mr-2"></i> Cerrar Asistencia y Verificar
-        </a>
+        <form action="{{ url_for('admin.cerrar_clase', materia_id=materia.id) }}" method="POST" onsubmit="return confirm('¿Seguro que deseas cerrar la asistencia? El código QR dejará de funcionar.');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="block w-full bg-red-600 text-white font-bold py-3 rounded-xl hover:bg-red-700 transition-colors shadow-lg">
+                <i class="fas fa-lock mr-2"></i> Cerrar Asistencia y Verificar
+            </button>
+        </form>
         <p class="text-xs text-gray-400 mt-2">Al hacer clic, nadie más podrá registrarse.</p>
     </div>
 
@@ -56,11 +57,12 @@
                                     {{ asistencia.fecha.strftime('%H:%M') }}
                                 </td>
                                 <td class="p-4 text-center">
-                                    <a href="{{ url_for('admin.eliminar_asistencia', asistencia_id=asistencia.id) }}" 
-                                       onclick="return confirm('¿Sacar a este estudiante de la lista?');"
-                                       class="text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors">
-                                        <i class="fas fa-times text-lg"></i>
-                                    </a>
+                                    <form action="{{ url_for('admin.eliminar_asistencia', asistencia_id=asistencia.id) }}" method="POST" onsubmit="return confirm('¿Sacar a este estudiante de la lista?');" class="inline">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button type="submit" class="text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition-colors">
+                                            <i class="fas fa-times text-lg"></i>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                             {% endfor %}

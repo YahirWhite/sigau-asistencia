@@ -44,7 +44,7 @@
     </div>
 </div>
 
-<style>
+<style nonce="{{ csp_nonce() }}">
     .input-std {
         transition: all 0.3s ease;
         background-color: #ffffff !important;
@@ -54,7 +54,7 @@
 
     /* CORRECCIÓN PARA MODO OSCURO */
     html.dark .input-std {
-        background-color: #0f172a !important; /* Un tono más oscuro para contraste */
+        background-color: #0f172a !important; 
         color: #ffffff !important;
         -webkit-text-fill-color: #ffffff !important;
         border-color: #334155 !important;

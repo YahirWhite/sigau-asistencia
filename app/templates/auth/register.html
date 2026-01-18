@@ -33,7 +33,7 @@
 
             <div>
                 <label class="block text-xs font-bold text-gray-500 dark:text-slate-400 uppercase mb-1 ml-1">Ciudad</label>
-                <input type="text" name="ciudad" required class="input-std" placeholder="Ej. Barcelona">
+                <input type="text" name="city" required class="input-std" placeholder="Ej. Barcelona">
             </div>
 
             <div>
@@ -96,7 +96,7 @@
     </div>
 </div>
 
-<style>
+<style nonce="{{ csp_nonce() }}">
     .input-std {
         width: 100%; border-radius: 0.75rem !important; padding: 0.75rem 1rem !important;
         border: 1px solid #d1d5db !important; background-color: #ffffff !important;

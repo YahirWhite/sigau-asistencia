@@ -22,16 +22,16 @@ def create_app():
     migrate = Migrate(app, db)
     csrf.init_app(app)
 
-    # --- CSP MEJORADO PARA ELIMINAR TODAS LAS BANDERAS ---
+    # --- CSP BLINDADO: SE ELIMINA 'unsafe-inline' ---
     csp = {
         'default-src': "'self'",
         'script-src': [
             "'self'",
-            # Sin unsafe-eval para máxima seguridad
+            # Sin unsafe-eval
         ],
         'style-src': [
             "'self'",
-            "'unsafe-inline'", # Necesario para Tailwind
+            # SE ELIMINÓ 'unsafe-inline'. Ahora se usarán NONCES para seguridad.
             "https://cdnjs.cloudflare.com"
         ],
         'img-src': ["'self'", "data:", "blob:"],
@@ -40,16 +40,17 @@ def create_app():
         'media-src': ["'self'", "blob:", "data:"],
         'object-src': "'none'",      
         'frame-ancestors': "'none'", 
-        # NUEVAS DIRECTIVAS PARA ZAP:
         'base-uri': "'self'",
         'form-action': "'self'"
     }
 
+    # Aplicamos Talisman con Nonces para Script y Style
     Talisman(app, 
              force_https=True, 
              frame_options='DENY',
              content_security_policy=csp,
-             content_security_policy_nonce_in=['script-src'],
+             # ESTA LÍNEA ES CLAVE: Habilita nonces para ambos tipos
+             content_security_policy_nonce_in=['script-src', 'style-src'], 
              strict_transport_security=True,
              session_cookie_secure=True,
              session_cookie_http_only=True
@@ -64,10 +65,10 @@ def create_app():
     # --- CABECERAS PARA ELIMINAR BANDERAS DE CACHÉ Y DIVULGACIÓN ---
     @app.after_request
     def add_security_headers(response):
-        # Elimina "Directivas de Control de Caché" (Bandera Azul)
+        # Elimina "Directivas de Control de Caché" (Bandera Azul ZAP)
         response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
         response.headers["Pragma"] = "no-cache"
-        # Elimina "Divulgación de Información" (Oculta el servidor)
+        # Elimina "Divulgación de Información"
         response.headers["Server"] = "SIGAU-PRO"
         return response
 
