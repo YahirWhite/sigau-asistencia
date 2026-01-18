@@ -17,17 +17,15 @@ def create_app():
     db.init_app(app)
     migrate = Migrate(app, db)
 
-    # --- NUEVA CONFIGURACIÓN DE SEGURIDAD (CON NONCES) ---
+    # --- CONFIGURACIÓN DE SEGURIDAD MÁXIMA (SIN BLOQUEOS) ---
     csp = {
         'default-src': "'self'",
         'script-src': [
             "'self'",
-            # Se elimina "'unsafe-inline'" porque ahora usaremos NONCES
-            "'unsafe-eval'"    # Requerido por el motor del escáner QR
+            "'unsafe-eval'"  # Requerido por la lógica del escáner QR (html5-qrcode)
         ],
         'style-src': [
-            "'self'",
-            "'unsafe-inline'"  # Se mantiene para que Tailwind inyecte estilos dinámicos
+            "'self'"         # ELIMINADO 'unsafe-inline'. Ahora solo confía en tus archivos locales.
         ],
         'img-src': ["'self'", "data:", "blob:"],
         'font-src': "'self'",
@@ -39,13 +37,13 @@ def create_app():
              force_https=True, 
              frame_options='DENY',
              content_security_policy=csp,
-             # ESTA LÍNEA ACTIVA EL NONCE: Flask buscará etiquetas <script> y les dará un ID único
+             # Autoriza los scripts con nonce (tema oscuro, alertas flash, etc.)
              content_security_policy_nonce_in=['script-src']
     )
              
     # --- CONFIGURACIÓN DE COOKIES SEGURAS ---
     app.config.update(
-        SESSION_COOKIE_SECURE=True,   # Cambiado a True para mayor seguridad en producción
+        SESSION_COOKIE_SECURE=True,
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE='Lax',
     )

@@ -7,75 +7,11 @@
     
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='logo.png') }}">
 
-    <script nonce="{{ csp_nonce() }}" src="{{ url_for('static', filename='js/tailwind.js') }}"></script>
-    <script nonce="{{ csp_nonce() }}" src="{{ url_for('static', filename='js/html5-qrcode.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/fontawesome.all.min.css') }}">
     
-    <script nonce="{{ csp_nonce() }}">
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        'azul-inst': '#003366',   
-                        'azul-sec': '#0055A4',    
-                        'amarillo': '#FFD700',    
-                        'amarillo-dark': '#B8860B', 
-                        'gris-fondo': '#F3F4F6',  
-                        'gris-texto': '#1F2937',  
-                        'gris-input': '#F9FAFB'   
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        .overflow-x-auto::-webkit-scrollbar { height: 10px; }
-        .overflow-x-auto::-webkit-scrollbar-track { background: transparent; }
-        .overflow-x-auto::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .dark .overflow-x-auto::-webkit-scrollbar-thumb { background: #475569; }
-
-        @keyframes bounceIn {
-            0% { transform: scale(0.9); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        .animate-bounce-in {
-            animation: bounceIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        /* --- CORRECCIÓN DE FUERZA MÁXIMA PARA VISIBILIDAD --- */
-        input:not([type="radio"]):not([type="checkbox"]), select, textarea {
-            background-color: #ffffff !important;
-            color: #000000 !important;
-            -webkit-text-fill-color: #000000 !important;
-            border: 1px solid #d1d5db !important;
-        }
-
-        .dark input:not([type="radio"]):not([type="checkbox"]), 
-        .dark select, 
-        .dark textarea {
-            background-color: #1e293b !important;
-            color: #ffffff !important;
-            -webkit-text-fill-color: #ffffff !important;
-            border-color: #475569 !important;
-        }
-
-        .dark .bg-white, .dark .bg-gray-50 {
-            background-color: #0f172a !important;
-            color: #ffffff !important;
-        }
-
-        input::placeholder { color: #9ca3af !important; }
-        .dark input::placeholder { color: #64748b !important; }
-
-        #reader {
-            width: 100%;
-            border-radius: 12px;
-            overflow: hidden;
-            border: none !important;
-        }
-    </style>
+    <script nonce="{{ csp_nonce() }}" src="{{ url_for('static', filename='js/html5-qrcode.min.js') }}"></script>
 
     <script nonce="{{ csp_nonce() }}">
         if (localStorage.getItem('color-theme') === 'dark' || (!('color-theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -103,7 +39,7 @@
                         {% else %} bg-blue-100 dark:bg-blue-900/30 border-l-4 border-blue-500 text-blue-800 dark:text-blue-200 {% endif %}">
                         <div class="p-4 flex items-center justify-between">
                             <span class="font-medium text-sm">{{ message }}</span>
-                            <button onclick="this.parentElement.parentElement.remove()" class="opacity-50 hover:opacity-100 px-2">
+                            <button class="opacity-50 hover:opacity-100 px-2 close-flash">
                                 <i class="fas fa-times"></i>
                             </button>
                         </div>
@@ -131,7 +67,6 @@
         themeToggleBtn.addEventListener('click', function() {
             darkIcon.classList.toggle('hidden');
             lightIcon.classList.toggle('hidden');
-
             if (document.documentElement.classList.contains('dark')) {
                 document.documentElement.classList.remove('dark');
                 localStorage.setItem('color-theme', 'light');
@@ -139,6 +74,13 @@
                 document.documentElement.classList.add('dark');
                 localStorage.setItem('color-theme', 'dark');
             }
+        });
+
+        // Manejador de alertas flash (Cerrar)
+        document.querySelectorAll('.close-flash').forEach(btn => {
+            btn.addEventListener('click', function() {
+                this.closest('.animate-bounce-in').remove();
+            });
         });
     </script>
 </body>

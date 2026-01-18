@@ -1,0 +1,88 @@
+/* --- 1. VARIABLES Y COLORES TAILWIND (Análisis de Repositorio) --- */
+:root {
+    --azul-inst: #003366;
+    --azul-sec: #0055A4;
+    --amarillo: #FFD700;
+    --amarillo-dark: #B8860B;
+    --gris-fondo: #F3F4F6;
+    --gris-texto: #1F2937;
+}
+
+/* Clases de compatibilidad para tus vistas de GitHub */
+.bg-azul-inst, .bg-\[\#003366\] { background-color: var(--azul-inst) !important; }
+.text-azul-inst { color: var(--azul-inst) !important; }
+.bg-azul-sec { background-color: var(--azul-sec) !important; }
+.text-azul-sec { color: var(--azul-sec) !important; }
+.text-amarillo { color: var(--amarillo) !important; }
+.bg-amarillo { background-color: var(--amarillo) !important; }
+.border-azul-inst { border-color: var(--azul-inst) !important; }
+
+/* --- 2. MODO OSCURO (Análisis de Vistas Internas) --- */
+.dark body { background-color: #0f172a !important; color: #f8fafc !important; }
+
+/* Asegura que las tarjetas blancas se vuelvan azul marino en modo oscuro */
+.dark .bg-white, 
+.dark .bg-gray-50, 
+.dark .dark\:bg-slate-800,
+.dark .dark\:bg-slate-900 { 
+    background-color: #1e293b !important; 
+    color: #ffffff !important;
+    border-color: #334155 !important;
+}
+
+.dark .text-gray-600, .dark .text-gray-500 { color: #94a3b8 !important; }
+.dark .border-gray-100, .dark .border-gray-200 { border-color: #334155 !important; }
+
+/* --- 3. COMPONENTES: TABLAS Y SCROLL --- */
+.overflow-x-auto::-webkit-scrollbar { height: 8px; }
+.overflow-x-auto::-webkit-scrollbar-track { background: transparent; }
+.overflow-x-auto::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+.dark .overflow-x-auto::-webkit-scrollbar-thumb { background: #475569; }
+
+/* --- 4. ANIMACIONES (Escáner y Flash) --- */
+@keyframes bounceIn {
+    0% { transform: scale(0.9); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+.animate-bounce-in {
+    animation: bounceIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes scan {
+    0% { top: 0%; opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { top: 100%; opacity: 0; }
+}
+.animate-scan {
+    animation: scan 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* --- 5. FORMULARIOS (Fuerza Máxima CSP) --- */
+input:not([type="radio"]):not([type="checkbox"]), select, textarea {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    -webkit-text-fill-color: #000000 !important;
+    border: 1px solid #d1d5db !important;
+}
+
+.dark input:not([type="radio"]):not([type="checkbox"]), 
+.dark select, 
+.dark textarea {
+    background-color: #1e293b !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+    border-color: #475569 !important;
+}
+
+/* --- 6. ESPECÍFICOS ESCÁNER QR --- */
+#reader {
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    border: none !important;
+}
+#reader video { object-fit: cover !important; }
+
+/* Fix para el logo circular desbordado */
+.rounded-full { border-radius: 9999px !important; }
